@@ -1,0 +1,4 @@
+"To set up the backend and frontend: " 
+"1. Navigate to backend/ directory." 
+"2. Run 'pip install -r requirements.txt' to install dependencies." 
+"3. Navigate to frontend/ directory and set up React environment." 
