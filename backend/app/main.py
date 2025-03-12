@@ -28,6 +28,7 @@ class PromptRequest(BaseModel):
     user_id: str
     prompt: str
     session_id: str
+    previous_prompt: str
 
 @app.post("/create_profile")
 async def create_profile(profile: UserProfile):
@@ -51,7 +52,7 @@ async def handle_prompt(request: PromptRequest):
         raise HTTPException(status_code=404, detail="User not found")
 
     # Process the prompt via conversation service
-    result = await process_user_prompt(request.session_id, request.user_id, request.prompt)
+    result = await process_user_prompt(request.session_id, request.user_id, request.prompt, request.previous_prompt)
 
     return result
 

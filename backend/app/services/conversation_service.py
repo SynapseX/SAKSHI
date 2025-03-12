@@ -11,8 +11,32 @@ from backend.app.services.phase_shifter import phase_shifter
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Define the ordered list of phases (adjust as needed)
+PHASE_SEQUENCE = [
+    "Initial Phase",
+    "Intake Phase",
+    "Exploratory Inquiry Phase",
+    "Scenario Validation Phase",
+    "Solution Retrieval Phase",
+    "Intervention & Follow-Up Phase",
+    "Progress Evaluation Phase",
+    "Termination/Closure Phase"
+]
 
-async def process_user_prompt(session_id: str, user_id: str, prompt: str, max_tokens: int = 4096):
+def get_next_phase(current_phase: str) -> str:
+    """
+    Returns the next phase based on the current phase, following the defined PHASE_SEQUENCE.
+    If the current phase is the last in the sequence, it returns the same phase.
+    """
+    if current_phase in PHASE_SEQUENCE:
+        idx = PHASE_SEQUENCE.index(current_phase)
+        if idx < len(PHASE_SEQUENCE) - 1:
+            return PHASE_SEQUENCE[idx + 1]
+    # If not found or already last, return current_phase unchanged.
+    return current_phase
+
+
+async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent_question, max_tokens: int = 4096):
     """
     Main function to handle user input during the conversation.
     Retrieves previous context, decides on phase shift, generates feedback or follow-up questions,
@@ -27,14 +51,18 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, max_to
     logger.info(f"Processing prompt for user {user_id} in {current_phase}: {prompt}")
 
     # Phase shifting decision based on previous context and latest prompt.
-    phase_decision, user_situation = phase_shifter(previous_context, prompt, current_phase, user_id, db, prompt,
+    phase_decision, user_situation = phase_shifter(previous_context, prompt, current_phase, user_id, db, recent_question,
                                                    max_tokens)
 
     if phase_decision == "advance":
+        next_phase = get_next_phase(current_phase)
         advance_questions = generate_advance_questions(previous_context, prompt, current_phase, user_id)
         feedback_obj = generate_response(create_prompt(previous_context + " " + prompt, prompt))
         feedback = feedback_obj.get("final_response", "No feedback generated")
-        log_session(session_id, user_id, current_phase, prompt, feedback, user_situation, phase_decision)
+
+        # Update current_phase to next_phase in the log
+        log_session(session_id, user_id, next_phase, prompt, feedback, user_situation, phase_decision)
+
         return {
             "follow_up_question": advance_questions,
             "phase_decision": phase_decision,
@@ -75,33 +103,35 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, max_to
 def analyze_previous_chats(user_id: str, max_tokens: int):
     """
     Retrieve and analyze previous conversations from MongoDB to create context for the current session.
-    Returns a tuple: (truncated conversation context, current phase based on last session log).
+    Aggregates conversation logs from each phase (stored as lists) and returns a tuple:
+    (truncated conversation context, current phase based on the latest session document).
     """
-    cursor = db['sessions'].find({"user_id": user_id}).sort("last_updated", -1)
-    sessions = list(cursor)
+    cursor = db['sessions'].find({"user_id": user_id})
+    sessions = list(cursor)[:100]
     if not sessions:
         return None, None
 
-    context = []
-    total_tokens = 0
-
+    all_chats_list = []
     for session in sessions:
-        conversation = session.get("conversation", "")
-        tokens = tokenize_text(conversation)
-        token_count = len(tokens)
+        phases = session.get("phases", {})
+        for phase_name, logs in phases.items():
+            if isinstance(logs, list):
+                for log in logs:
+                    user_prompt = log.get("user_prompt", "")
+                    ai_response = log.get("ai_response", "")
+                    all_chats_list.append(f"{phase_name} - User: {user_prompt} | AI: {ai_response}")
+            else:
+                log = logs
+                user_prompt = log.get("user_prompt", "")
+                ai_response = log.get("ai_response", "")
+                all_chats_list.append(f"{phase_name} - User: {user_prompt} | AI: {ai_response}")
 
-        if total_tokens + token_count <= max_tokens:
-            context.append(conversation)
-            total_tokens += token_count
-        else:
-            remaining_tokens = max_tokens - total_tokens
-            truncated_tokens = tokens[:remaining_tokens]
-            context.append(detokenize_text(truncated_tokens))
-            break
-
-    previous_context = " ".join(reversed(context))
+    previous_context = " ".join(all_chats_list)
+    tokenized_context = tokenize_text(previous_context)
+    truncated_tokens = truncate_to_max_tokens(tokenized_context, max_tokens)
+    # Use the current phase from the most recent session (sorted by last_updated)
     current_phase = sessions[0].get('current_phase', "Initial Phase")
-    return previous_context, current_phase
+    return " ".join(truncated_tokens), current_phase
 
 def detokenize_text(tokens):
     return ' '.join(tokens)
@@ -175,7 +205,16 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         f"Emotional history: {user_profile.get('emotional_history', 'no prior history available')}."
     )
     full_prompt = (
-        f"Current Phase: {phase_intent.get(current_phase, 'Unknown Phase')}\n"
+        f"Act as a Therapist and your work is to ask questions to the user in a therapy session.\n\n"
+        f"The Phases are as follows:{phase_intent}\n"
+        f"You are here to ask question based on Previous Context, Current Phase, Current Phase Intent, User Situation and User Current Answers to last question asked.\n\n"
+        f"Make Sure your questions alings with the phase we are in.\n\n"
+        f"We need one single question in the advance_question field.\n\n"
+        f"Our output should be in JSON format.\n\n"
+        f"Our Output should be a single object with key advance_question and value as the question you want to ask.\n\n"
+        f"Make Sure your goal is to gather behavioral insights and Intent of the Current Phase.\n\n"
+        f"Current Phase : {current_phase} \n"
+        f"Current Phase Intent: {phase_intent.get(current_phase, 'Unknown Phase')}\n"
         f"User Situation: {user_situation_text}\n"
         f"Previous Context: {previous_context}\n"
         f"User's Prompt: '{prompt}'\n"
