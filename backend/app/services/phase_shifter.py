@@ -1,7 +1,32 @@
 # backend/services/phase_shifter.py
 import random
-from backend.services.llm_connector import generate_response
-from backend.services.conversation_service import analyze_user_situation
+from backend.app.services.llm_connector import generate_response
+
+
+def analyze_user_situation(prompt: str) -> dict:
+    """
+    Analyzes the user's prompt to extract their emotional state, current issues, emotional history,
+    and identifies the appropriate therapeutic phase for intervention.
+    """
+    llm_prompt = (
+        f"Analyze the following user response to extract their emotional state, current issues, "
+        f"emotional history, and determine the appropriate therapeutic phase:\n"
+        f"User's response: '{prompt}'\n"
+        "Return the result as a JSON object, for example:\n"
+        "{\"emotional_state\": \"anxious\", \"current_issues\": \"work stress\", "
+        "\"emotional_history\": \"has felt anxious for months due to workload\", "
+        "\"therapeutic_phase\": \"stabilization\"}"
+    )
+    response = generate_response(llm_prompt)
+    try:
+        return response if isinstance(response, dict) else {}
+    except Exception:
+        return {
+            "emotional_state": "neutral",
+            "current_issues": "none reported",
+            "emotional_history": "no prior history available",
+            "therapeutic_phase": "assessment"
+        }
 
 
 def phase_shifter(prev_conversation_log: str, prompt: str, current_phase: str, user_id: str, db, recent_question: str,
