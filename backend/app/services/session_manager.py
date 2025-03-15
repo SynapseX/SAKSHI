@@ -6,7 +6,7 @@ class SessionManager:
     def __init__(self):
         self.sessions = {}  # In-memory storage; consider a persistent store for production
 
-    def create_session(self, uid: str, duration: str, metadata: dict = None):
+    def create_session(self, uid: str, duration: int, metadata: dict = None):
         session_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
         expires_at = self._calculate_expiry(created_at, duration)
@@ -45,10 +45,9 @@ class SessionManager:
     def list_active_sessions(self):
         return [s for s in self.sessions.values() if s["status"] == "active"]
 
-    def _calculate_expiry(self, start_time: datetime, duration: str):
+    def _calculate_expiry(self, start_time: datetime, duration: int):
         try:
-            value, unit = duration.split()
-            value = int(value)
+            value, unit = duration,'minutes'
         except Exception:
             raise ValueError("Duration must be in the format '<number> <unit>', e.g., '1 hour'")
 

@@ -60,7 +60,7 @@ async def handle_prompt(request: PromptRequest):
 # Define request model for creating a session
 class SessionCreateRequest(BaseModel):
     uid: str
-    duration: str  # e.g., "1 hour", "1 day", "1 year"
+    duration: int  # e.g., "1 hour", "1 day", "1 year"
     metadata: dict = {}  # Optional additional info
 
 @app.post("/sessions/")
