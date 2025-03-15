@@ -1,7 +1,7 @@
 <div class="mx-auto bg-white rounded m-8 p-2 max-w-2xl shadow">
   <h3 class="text-lg">Active Sessions</h3>
   @for (sess of activeSessions; track $index) {
-  <p>{{ sess | json }}</p>
+  <app-sess [session]="sess"></app-sess>
   }
 
   <h3 class="text-lg font-semibold">Create Sessions</h3>
@@ -12,7 +12,11 @@
     <div class="flex items-center space-x-2">
       <label for="">Duration</label>
       <div class="flex">
-        <select name="sessionDuration" formControlName="sessionDuration">
+        <select
+          name="sessionDuration"
+          formControlName="sessionDuration"
+          class="input"
+        >
           @for (m of minutes; track m) {
           <option [value]="m">{{ m }}</option>
           }

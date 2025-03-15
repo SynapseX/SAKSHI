@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,15 +7,19 @@ import {
 } from '@angular/forms';
 import { SessionService } from '../_services/session.service';
 import { CommonModule } from '@angular/common';
+import { SessComponent } from './sess/sess.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sessions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SessComponent],
   templateUrl: './sessions.component.html',
   styleUrl: './sessions.component.scss',
 })
-export class SessionsComponent implements OnInit {
+export class SessionsComponent implements OnInit, OnDestroy {
+  sub!: Subscription;
+
   sessionForm!: FormGroup;
   minutes = [15, 30, 60];
 
@@ -27,8 +31,14 @@ export class SessionsComponent implements OnInit {
     this.initSessionForm();
 
     this.sessSrv.listActiveSessions('assssasasasasasa').subscribe({
-      next: (res) => {
-        this.activeSessions.push(res);
+      next: (sessions: any) => {
+        this.sessSrv.activeSessionsSource.next(sessions.active_sessions);
+      },
+    });
+
+    this.sub = this.sessSrv.activeSessions$.subscribe({
+      next: (sessions) => {
+        this.activeSessions = sessions;
       },
     });
   }
@@ -37,7 +47,7 @@ export class SessionsComponent implements OnInit {
     this.sessionForm = this.fb.group({
       sessionName: [''],
       sessionTime: [new Date().toUTCString()],
-      sessionDuration: ['', Validators.required],
+      sessionDuration: [30, Validators.required],
       treatmentGoals: ['', Validators.required],
       clientExpectations: ['', Validators.required],
       sessionNotes: [''],
@@ -53,5 +63,9 @@ export class SessionsComponent implements OnInit {
         console.log(res);
       },
     });
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 }

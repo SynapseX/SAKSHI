@@ -1,0 +1,22 @@
+<div class="bg-white shadow p-3 border rounded-md">
+  <div class="flex">
+    <div class="">
+      <h3 class="text-base">
+        {{ session.name || "Untitled Session" }} ( {{ session.session_id }} )
+      </h3>
+      <p class="text-base">{{ session.created_at | date : "medium" }}</p>
+      <p>Duration: {{ session.duration }} Mins</p>
+    </div>
+    <div class="ml-auto">
+      <button
+        class="size-9 bg-red-500 text-white rounded-lg grid place-items-center"
+        title="Delete Session"
+        (click)="deleteSession(session.session_id)"
+      >
+        <span class="material-symbols-rounded size-6 text-[1.5rem]">
+          delete
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
