@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from backend.app.models.models import UserProfile, UserProfile_DB
 from backend.app.services.mongodb_service import db
+from backend.app.services.session_manager import SessionManager
 from services.conversation_service import process_user_prompt
 from pydantic import BaseModel
 import logging
@@ -14,6 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+session_manager = SessionManager()
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +57,54 @@ async def handle_prompt(request: PromptRequest):
     result = await process_user_prompt(request.session_id, request.user_id, request.prompt, request.previous_prompt)
 
     return result
+
+# Define request model for creating a session
+class SessionCreateRequest(BaseModel):
+    uid: str
+    duration: str  # e.g., "1 hour", "1 day", "1 year"
+    metadata: dict = {}  # Optional additional info
+
+@app.post("/sessions/")
+def create_session(request: SessionCreateRequest):
+    try:
+        session = session_manager.create_session(request.uid, request.duration, request.metadata)
+        return {"message": "Session created", "session": session}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/sessions/{session_id}")
+def get_session(session_id: str):
+    session = session_manager.get_session(session_id)
+    if session:
+        return session
+    raise HTTPException(status_code=404, detail="Session not found")
+
+
+#TODO: Implement the extend_session endpoint
+@app.put("/sessions/{session_id}/extend")
+def extend_session(session_id: str, additional_duration: str):
+    session = session_manager.extend_session(session_id, additional_duration)
+    if session:
+        return {"message": "Session extended", "session": session}
+    raise HTTPException(status_code=404, detail="Session not found or inactive")
+
+@app.delete("/sessions/{session_id}")
+def terminate_session(session_id: str):
+    session = session_manager.terminate_session(session_id)
+    if session:
+        return {"message": "Session terminated", "session": session}
+    raise HTTPException(status_code=404, detail="Session not found")
+
+@app.get("/sessions/active")
+def list_active_sessions():
+    active_sessions = session_manager.list_active_sessions()
+    return {"active_sessions": active_sessions}
+
+@app.get("/sessions/active/{user_id}")
+def list_active_sessions_by_user(user_id: str):
+    active_sessions = session_manager.list_active_sessions()
+    user_sessions = [s for s in active_sessions if s["uid"] == user_id]
+    return {"active_sessions": user_sessions}
 
 if __name__ == "__main__":
     import uvicorn

@@ -6,6 +6,7 @@ import logging
 
 from backend.app.services.llm_connector import generate_response, create_prompt
 from backend.app.services.mongodb_service import db
+from backend.app.services.phase_intent import phase_intent
 from backend.app.services.phase_shifter import phase_shifter
 
 logging.basicConfig(level=logging.INFO)
@@ -188,38 +189,50 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
             "current_issue": "none reported",
             "emotional_history": "no prior history available"
         }
-    phase_intent = {
-        "Initial Phase": "In the Initial Phase, our goal is to gather behavioral insights and establish your baseline. End goal: Comprehensive baseline data.",
-        "Intake Phase": "In the Intake Phase, we gather detailed accounts of your current emotional experiences. End goal: Clear understanding of immediate challenges.",
-        "Exploratory Inquiry Phase": "In the Exploratory Inquiry Phase, we probe deeper into emotional triggers. End goal: Identify underlying issues.",
-        "Scenario Validation Phase": "In the Scenario Validation Phase, we validate your responses with targeted scenarios. End goal: Confirm specific challenges.",
-        "Solution Retrieval Phase": "In the Solution Retrieval Phase, we offer actionable strategies. End goal: Provide practical interventions.",
-        "Intervention & Follow-Up Phase": "In the Intervention & Follow-Up Phase, we monitor your progress. End goal: Noticeable improvement.",
-        "Progress Evaluation Phase": "In the Progress Evaluation Phase, we assess the outcomes of interventions. End goal: Determine effectiveness and plan next steps.",
-        "Termination/Closure Phase": "In the Termination/Closure Phase, we conclude the session. End goal: Remind you of recommendations and set a 7-day observation period before the next session.",
-        "Crisis Phase": "In the Crisis Phase, your responses indicate severe distress. End goal: Immediately advise seeking in-person help."
-    }
+
+
     user_situation_text = (
         f"The user has described their emotional state as {user_profile.get('emotional_state', 'neutral')}, "
         f"and is currently dealing with {user_profile.get('current_issue', 'none reported')}. "
         f"Emotional history: {user_profile.get('emotional_history', 'no prior history available')}."
     )
     full_prompt = (
-        f"Act as a Therapist and your work is to ask questions to the user in a therapy session.\n\n"
-        f"The Phases are as follows:{phase_intent}\n"
-        f"You are here to ask question based on Previous Context, Current Phase, Current Phase Intent, User Situation and User Current Answers to last question asked.\n\n"
-        f"Make Sure your questions alings with the phase we are in.\n\n"
-        f"We need one single question in the advance_question field.\n\n"
-        f"Our output should be in JSON format.\n\n"
-        f"Our Output should be a single object with key advance_question and value as the question you want to ask.\n\n"
-        f"Make Sure your goal is to gather behavioral insights and Intent of the Current Phase.\n\n"
-        f"Current Phase : {current_phase} \n"
-        f"Current Phase Intent: {phase_intent.get(current_phase, 'Unknown Phase')}\n"
-        f"User Situation: {user_situation_text}\n"
-        f"Previous Context: {previous_context}\n"
-        f"User's Prompt: '{prompt}'\n"
-        f"Intent: Craft empathetic advance questions that help clarify your experiences and guide you toward the next phase.\n"
-        f"Response Format: ```json\n{{\"advance_question\": \"value\", \"intention\": \"explanation\"}}\n```"
+       f"""
+        Act as an AI therapist guiding a client through a structured session. Your task is to generate one empathetic advance question that bridges the client’s current emotional state to the next phase, addresses any potential resistance or ambiguity, and reinforces the session's objectives.
+        
+        **Inputs Provided:**
+        - **Current Phase:** {current_phase}
+        - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase')}
+        - **User Situation:** {user_situation_text}  
+          *(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
+        - **Previous Context:** {previous_context}
+        - **User's Prompt:** '{prompt}'
+        
+        Chain-of-Thought Reasoning:
+        1. **Context Analysis:** Examine the previous conversation and the client's most recent prompt to identify key emotional cues and any gaps or resistance in their narrative.
+        2. **Phase Alignment:** Reflect on the goals of the current phase—what is the next piece of information needed to ensure progress towards the phase objectives?
+        3. **Resistance & Ambiguity Check:** Identify any subtle signs of hesitation, lack of clarity, or resistance that need to be addressed.
+        4. **Bridging the Gap:** Formulate a question that not only deepens self-reflection but also helps transition the client toward the objectives of the next phase.
+        5. **Empathy & Clarity:** Ensure the question is open-ended, empathetic, and encourages further elaboration on their experiences.
+        
+        Task:
+        Generate one advance question based on the above details.
+        
+        Response Format:
+        Please provide your final answer in JSON format with the following keys:
+        - "advance_question": (The advance question you generated)
+        - "intention": (A brief explanation of why this question is appropriate and how it bridges the client's current state with the next phase)
+        - "chain_of_thought": (A bullet-point list summarizing your reasoning process)
+        
+        Example Output:
+        ```json
+        {{
+          "advance_question": "Can you describe a recent experience where you sensed a shift in your emotions, and what do you think contributed to that change?",
+          "intention": "This question invites deeper reflection on the client's recent emotional shifts, clarifies any ambiguity, and helps transition them toward the next phase by addressing gaps in understanding.",
+          "chain_of_thought": "- Analyzed the client's emotional cues; - Identified need for more detail on recent changes; - Recognized subtle resistance in describing emotions; - Formulated an empathetic, open-ended question aligned with phase intent."
+        }}
+        ```
+       """
     )
     response = generate_response(full_prompt)
     advance_question = response.get("advance_question", "")
@@ -237,30 +250,49 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
             "current_issue": "none reported",
             "emotional_history": "no prior history available"
         }
-    phase_intent = {
-        "Initial Phase": "In the Initial Phase, we focus on understanding your behaviors and emotional patterns.",
-        "Intake Phase": "In the Intake Phase, we seek detailed accounts of your recent challenges.",
-        "Exploratory Inquiry Phase": "In the Exploratory Inquiry Phase, we probe deeper into your emotional triggers.",
-        "Scenario Validation Phase": "In the Scenario Validation Phase, we validate your responses with specific scenarios.",
-        "Solution Retrieval Phase": "In the Solution Retrieval Phase, we provide actionable strategies for you.",
-        "Intervention & Follow-Up Phase": "In the Intervention & Follow-Up Phase, we follow up on your progress.",
-        "Progress Evaluation Phase": "In the Progress Evaluation Phase, we evaluate the outcomes of interventions.",
-        "Termination/Closure Phase": "In the Termination/Closure Phase, we offer closure, reminding you of recommendations and setting a 7-day observation period before the next session.",
-        "Crisis Phase": "In the Crisis Phase, we advise immediate in-person help due to severe distress."
-    }
     user_situation_text = (
         f"The user has described their emotional state as {user_profile.get('emotional_state', 'neutral')}, "
         f"and is currently dealing with {user_profile.get('current_issue', 'none reported')}. "
         f"Emotional history: {user_profile.get('emotional_history', 'no prior history available')}."
     )
     full_prompt = (
-        f"Current Phase: {phase_intent.get(current_phase, 'Unknown Phase')}\n"
-        f"User Situation: {user_situation_text}\n"
-        f"Previous Context: {previous_context}\n"
-        f"User's Prompt: '{prompt}'\n"
-        f"Intent: Craft empathetic follow-up questions to gather more insights about your experiences and emotional state. "
-        f"Encourage open dialogue so you can articulate feelings, triggers, and experiences.\n"
-        f"Response Format: ```json\n{{\"follow_up_question\": \"value\", \"intention\": \"explanation\"}}\n```"
+        f"""
+        Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Ensure that your inquiry is aligned with the current phase’s goals, helps clarify the client's emotions, and checks for any signs of distress.
+            
+            **Inputs Provided:**
+            - **Current Phase:** {current_phase}
+            - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase')}
+            - **User Situation:** {user_situation_text}  
+              *(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
+            - **Previous Context:** {previous_context}
+            - **User's Prompt:** '{prompt}'
+            
+            **Chain-of-Thought Reasoning:**
+            1. **Emotional Reflection:** Review the user's current emotional cues and level of detail.
+            2. **Clarification of Goals:** Consider whether the client’s response aligns with the therapeutic objectives for the current phase.
+            3. **Identify Ambiguity or Resistance:** Look for any signs of resistance, ambivalence, or insufficient detail that may hinder deeper understanding.
+            4. **Safety and Risk Assessment:** Note if there are any safety concerns or signals of distress requiring further exploration.
+            5. **Active Reflective Listening:** Ensure that the follow-up question is open-ended, supportive, and encourages the client to elaborate further.
+            6. **Session Continuity:** Optionally, check if clarifying the session goals or next steps is needed for continuity.
+            
+            **Task:**
+            Generate one follow-up question based on the above details that invites the client to elaborate on their experience and address any potential gaps or resistance in their narrative.
+            
+            **Response Format:**
+            Please provide your final answer in JSON format with the following keys:
+            - `"follow_up_question"`: The follow-up question you have generated.
+            - `"intention"`: A brief explanation of why this question is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase.
+            - `"chain_of_thought"`: A bullet-point list summarizing your step-by-step reasoning process.
+            
+            **Example Output:**
+            ```json
+            {{
+              "follow_up_question": "Can you tell me more about what you experienced when you mentioned feeling uncertain about your emotions, and what you think might be causing that uncertainty?",
+              "intention": "This question is designed to explore potential ambivalence in the client's response, encouraging deeper reflection on their emotional state and underlying causes, which is essential for progressing in the current phase.",
+              "chain_of_thought": "- Reviewed the client's emotional cues; - Noted ambiguity regarding emotional uncertainty; - Considered the need to address potential resistance; - Formulated a question to invite deeper self-reflection."
+            }}
+            ```
+        """
     )
     response = generate_response(full_prompt)
     follow_up_question = response.get("follow_up_question", "")
