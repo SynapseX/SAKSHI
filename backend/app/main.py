@@ -102,9 +102,8 @@ def list_active_sessions():
 
 @app.get("/sessions/active/{user_id}")
 def list_active_sessions_by_user(user_id: str):
-    active_sessions = session_manager.list_active_sessions()
-    user_sessions = [s for s in active_sessions if s["uid"] == user_id]
-    return {"active_sessions": user_sessions}
+    active_sessions = session_manager.list_active_sessions_by_user(user_id)
+    return {"active_sessions": active_sessions}
 
 if __name__ == "__main__":
     import uvicorn

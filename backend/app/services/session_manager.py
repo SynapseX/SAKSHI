@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, timedelta
 
+from backend.app.services.mongodb_service import db
+
 
 class SessionManager:
     def __init__(self):
@@ -22,28 +24,38 @@ class SessionManager:
             "metadata": metadata or {}
         }
         self.sessions[session_id] = session_data
+        db['sessions'].insert_one(session_data)
         return session_data
 
     def get_session(self, session_id: str):
-        return self.sessions.get(session_id, None)
+        session = db['sessions'].find_one({"session_id": session_id})
+        return session
 
     def extend_session(self, session_id: str, additional_duration: str):
-        session = self.sessions.get(session_id)
+        session = db['sessions'].find_one({"session_id": session_id})
         if session and session["status"] == "active":
             # Extend expiry based on the current expiry time
-            session["expires_at"] = self._calculate_expiry(session["expires_at"], additional_duration)
+            new_expiry = self._calculate_expiry(session["expires_at"], additional_duration)
+            db['sessions'].update_one({"session_id": session_id}, {"$set": {"expires_at": new_expiry}})
+            session["expires_at"] = new_expiry
             return session
         return None
 
     def terminate_session(self, session_id: str):
-        session = self.sessions.get(session_id)
+        session = db['sessions'].find_one({"session_id": session_id})
         if session:
+            db['sessions'].update_one({"session_id": session_id}, {"$set": {"status": "terminated"}})
             session["status"] = "terminated"
             return session
         return None
 
     def list_active_sessions(self):
-        return [s for s in self.sessions.values() if s["status"] == "active"]
+        active_sessions = db['sessions'].find({"status": "active"})
+        return list(active_sessions)
+
+    def list_active_sessions_by_user(self, user_id: str):
+        active_sessions = db['sessions'].find({"status": "active", "uid": user_id})
+        return list(active_sessions)
 
     def _calculate_expiry(self, start_time: datetime, duration: str):
         try:
