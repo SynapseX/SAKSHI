@@ -1,15 +1,15 @@
 # backend/app/main.py
 import uuid
+import logging
 
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.app.models.models import UserProfile, UserProfile_DB
+from backend.app.models.models import UserProfile
 from backend.app.services.mongodb_service import db
 from backend.app.services.session_manager import SessionManager
 from services.conversation_service import process_user_prompt
-from pydantic import BaseModel
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,11 +34,10 @@ class PromptRequest(BaseModel):
 
 @app.post("/create_profile")
 async def create_profile(profile: UserProfile):
-    id = str(uuid.uuid4())
-    profile.id = id
+    profile.id = str(uuid.uuid4())
     logger.info(f"Creating profile for user: {profile.name}")
     result = db['users'].insert_one(profile.dict(by_alias=True))
-    new_user = db['users'].find_one({"_id": id})
+    new_user = db['users'].find_one({"_id": profile.id})
     return {"message": "Profile created", "user": new_user}
 
 

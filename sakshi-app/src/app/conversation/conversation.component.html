@@ -1,0 +1,55 @@
+<section class="w-full shadow bg-white p-4">
+  <div class="p-4">
+    <h1 class="text-2xl font-bold">Sessions</h1>
+    <p class="text-gray-500">
+      Chat with
+      <span class="font-semibold"
+        >SAKSHI<span class="text-green-500">.AI</span></span
+      >
+    </p>
+  </div>
+  <div
+    class="grid grid-cols-1 md:grid-cols-[12rem,1fr] lg:grid-cols-[20rem,1fr] min-h-96"
+  >
+    <div class="bg-white mr-2">
+      <div class="border-2 border-gray-300 rounded-lg w-full h-full"></div>
+    </div>
+    <!-- CHAT SECTION -->
+    <div class="bg-gray-200 rounded-lg overflow-hidden">
+      <div class="!h-[30rem]">
+        <app-message-box></app-message-box>
+      </div>
+      <div class="w-full px-4 pb-6">
+        <form
+          [formGroup]="promptForm"
+          autocomplete="off"
+          (ngSubmit)="promptForm.valid && promptSubmit()"
+        >
+          <div
+            class="flex items-center space-x-4 py-2 px-5 border-2 border-gray-400 focus-within:border-green-600 rounded-3xl transition"
+          >
+            <textarea
+              name="message"
+              formControlName="message"
+              cols="30"
+              rows="3"
+              class="w-full rounded bg-transparent text-sm outline-none resize-none"
+              required
+            ></textarea>
+            <button
+              class="py-2.5 px-4 flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white rounded-xl transition-colors"
+              type="submit"
+            >
+              <span
+                class="material-symbols-rounded size-6 text-2xl leading-none"
+              >
+                prompt_suggestion
+              </span>
+              <span class="uppercase">ASK</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

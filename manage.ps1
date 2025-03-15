@@ -1,0 +1,49 @@
+<#
+ # This script is used to manage the project.
+ # It has the following actions:
+ # 1. env:start: Activates the virtual environment.
+ # 2. env:stop: Deactivates the virtual environment.
+ # 3. app:start: Starts the React app.
+ # 4. api:start: Starts the FastAPI server.
+ #
+ # Usage: ./manage.ps1 <action> <args>
+ # Example: ./manage.ps1 env:start
+#>
+
+Param(
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("env:start", "env:stop", "app:start", "api:start")]
+    [string]$action = "api:start",
+    [string]$args
+)
+
+$basePath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+switch($action){
+    "env:start"{
+        Set-Location -Path "$basePath\backend"
+        if($env:VIRTUAL_ENV -eq $null){
+            if($env:OS -eq "Windows_NT"){
+                & '.venv\Scripts\activate.ps1'
+            }else{
+                bash -rcfile .venv\Scripts\activate
+            }
+        }
+    }
+    "env:stop"{
+        Set-Location -Path "$basePath\backend"
+        deactivate
+    }
+    "app:start"{
+        Set-Location -Path "$basePath\sakshi-app"
+        yarn start
+    } 
+    "api:start" {
+        Set-Location -Path "$basePath\backend\app"
+        uvicorn main:app --port 8000 --reload
+    }
+    default{
+        Write-Host "Provide a valid action"
+        exit 1
+    }
+}

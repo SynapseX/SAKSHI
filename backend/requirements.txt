@@ -4,4 +4,4 @@ motor
 pydantic
 google-genai
 PyObjectId
-pymongo
+pymongo[4.11.2]

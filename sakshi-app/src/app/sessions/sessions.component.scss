@@ -1,0 +1,11 @@
+.input {
+  @apply p-2 border-2 outline-none w-full;
+}
+
+.formControlWrap {
+  @apply flex space-y-2;
+
+  label {
+    display: block;
+  }
+}

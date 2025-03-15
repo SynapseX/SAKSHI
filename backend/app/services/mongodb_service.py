@@ -1,6 +1,9 @@
 # backend/db/mongodb.py
 import os
 from pymongo import MongoClient
+import certifi
+
+ca = certifi.where()
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
@@ -12,10 +15,10 @@ ENV = os.getenv("ENV", "dev")
 
 if ENV.lower() == "dev" or ENV.lower() == "prod":
     print("Connecting to MongoDB Atlas...")
-    client = MongoClient(MONGODB_URL)
+    client = MongoClient(MONGODB_URL, tlsCAFile=ca)
     db = client["sakshi_db"]
+    print(db.list_collections())
 else:
     print("Connecting to local MongoDB...")
     client = MongoClient("mongodb://localhost:27017")
     db = client["sakshi_db"]
-
