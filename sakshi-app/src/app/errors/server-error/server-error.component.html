@@ -1,0 +1,18 @@
+<div class="w-full grid place-items-center p-24">
+  <div class="space-y-4">
+    <h2 class="text-4xl uppercase font-mono">Err_500</h2>
+    <p class="text-base">Something went bad on our side. Come back later.</p>
+    <a class="text-indigo-500 my-2 cursor-pointer" (click)="toggleSeeMore()">{{
+      isHidden ? "See Less &#9650;" : "See More &#9660;"
+    }}</a>
+    @if (isHidden) {
+    <div>
+      <h3 class="text-gray-700">{{ error?.message }}</h3>
+      <p class="text-sm text-red-400">{{ error?.description }}</p>
+    </div>
+    }
+    <div class="mt-2">
+      <button class="form_btn" routerLink="/">Go Home</button>
+    </div>
+  </div>
+</div>

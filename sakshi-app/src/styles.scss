@@ -1,0 +1,97 @@
+/* Tailwind Import */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TOASTR */
+@import "ngx-toastr/toastr";
+
+/* CHAT */
+
+.scroll {
+  overflow-y: auto;
+}
+.scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scroll::-webkit-scrollbar-track {
+  background-color: #eee;
+}
+.scroll::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 1rem;
+}
+.scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
+}
+
+/* --- CHATBOX --- */
+.chatWrap {
+  @apply w-full min-w-96 h-full p-8;
+}
+
+.chatBox {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 0.75rem;
+}
+.chatBox .chatFrom,
+.chatBox .chatTo {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.5rem 0;
+}
+.chatTo {
+  justify-content: flex-end;
+}
+.chatIcon {
+  @apply size-10 overflow-hidden grid place-items-center bg-white rounded-full shadow-md leading-[0];
+
+  padding: 0.5rem;
+  font-size: 0.5em;
+  /* box-shadow: 0 0.3rem 0.5rem rgba(153, 153, 153, 0.2); */
+}
+.chatIcon i,
+.chatIcon .material-symbols-rounded {
+  @apply text-gray-700;
+  font-size: 1.5rem;
+}
+.chatFrom .chatIcon {
+  margin-right: 0.25rem;
+}
+.chatTo .chatIcon {
+  margin-left: 0.25rem;
+}
+.msg {
+  @apply p-3 bg-white rounded-lg shadow-md mt-3 mx-1;
+
+  /*
+  * 2rem(iconSize)+2*.75rem(IconPadding)+2*.5rem(marginRight)
+  * 4.5rem * 2 = 9rem
+  */
+  max-width: calc(100% - 9rem);
+  font-size: 0.85rem;
+}
+.chatFrom .msg {
+  border-top-left-radius: 0;
+}
+.chatTo .msg {
+  border-top-right-radius: 0;
+}
+.chatInfo {
+  @apply text-gray-400 my-3 text-center text-xs;
+
+  /* display: grid;
+  grid-template-columns: 1fr minmax(12rem, max-content) 1fr;
+  align-items: center;
+  grid-column-gap: 0.75rem; */
+}
+/* .chatInfo::before,
+.chatInfo::after {
+  content: "";
+  height: 1px;
+  background-color: #ccc;
+  overflow: hidden;
+} */
+/* ------------------ */

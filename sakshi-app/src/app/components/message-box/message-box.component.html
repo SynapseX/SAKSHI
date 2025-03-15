@@ -1,0 +1,20 @@
+<div class="chatWrap h-[30rem] overflow-y-auto">
+  <!-- [scrollTop]="scrollRef.scrollHeight" -->
+  <div class="chatBox scroll" #scrollRef>
+    @for (chat of recentChats; track chat.time) {
+    <!--  -->
+    @switch (chat.chatType) {
+    <!--  -->
+    @case('from') {
+    <app-chat-from [chat]="chat"></app-chat-from>
+    } @case ('to') {
+    <app-chat-to [chat]="chat"></app-chat-to>
+    } @case ('info') {
+    <div class="chatInfo">{{ chat.message }}</div>
+    }
+    <!--  -->
+    }
+    <!--  -->
+    }
+  </div>
+</div>
