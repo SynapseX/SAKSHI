@@ -9,6 +9,7 @@ import { SessionService } from '../_services/session.service';
 import { CommonModule } from '@angular/common';
 import { SessComponent } from './sess/sess.component';
 import { Subscription } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-sessions',
@@ -25,7 +26,11 @@ export class SessionsComponent implements OnInit, OnDestroy {
 
   activeSessions: Object[] = [];
 
-  constructor(private fb: FormBuilder, private sessSrv: SessionService) {}
+  constructor(
+    private fb: FormBuilder,
+    private sessSrv: SessionService,
+    private tstSrv: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.initSessionForm();
@@ -60,7 +65,7 @@ export class SessionsComponent implements OnInit, OnDestroy {
   submitSessionForm() {
     this.sessSrv.createSession(this.sessionForm.value).subscribe({
       next: (res) => {
-        console.log(res);
+        this.tstSrv.success(res.message);
       },
     });
   }
