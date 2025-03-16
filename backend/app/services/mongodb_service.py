@@ -1,9 +1,6 @@
 # backend/db/mongodb.py
 import os
 from pymongo import MongoClient
-import certifi
-
-ca = certifi.where()
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")

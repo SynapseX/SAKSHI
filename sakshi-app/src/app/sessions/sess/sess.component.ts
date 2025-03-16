@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { DateAsAgoPipe } from '../../_utils/date-as-ago.pipe';
 import { CommonModule } from '@angular/common';
 import { SessionService } from '../../_services/session.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-sess',
@@ -13,13 +14,14 @@ import { SessionService } from '../../_services/session.service';
 export class SessComponent {
   @Input() session: any;
 
-  constructor(private sessSrv: SessionService) {}
+  constructor(private sessSrv: SessionService, private tstSrv: ToastrService) {}
 
   deleteSession(session_id: string) {
     if (confirm('Are you sure you want to delete this session?')) {
       this.sessSrv.terminateSession(session_id).subscribe({
         next: (res) => {
           console.log(res);
+          this.tstSrv.success(res.message);
         },
       });
     }
