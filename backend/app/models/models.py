@@ -23,8 +23,8 @@ class UserProfile_DB(BaseModel):
     name: str
     age: Optional[int] = None
 
-class SessionLog(BaseModel):
-    id: Optional[str] = Field(None, alias="_id")
-    user_id: str
-    # session_logs holds a dictionary mapping phase names to log paragraphs.
-    session_logs: Dict[str, str]
+class SessionCreateRequest(BaseModel):
+    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+    uid: str
+    duration: int  # e.g., "1 hour", "1 day", "1 year"
+    metadata: dict = {}  # Optional additional info

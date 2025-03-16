@@ -32,6 +32,8 @@ export class ConversationComponent implements OnInit {
 
   promptSubmit() {
     if (this.promptForm.valid) {
+      const previous_prompt = this.chatSrv.latestChat().message;
+      const current_prompt = this.promptForm.value.message;
       this.chatSrv.addChat({
         chatType: 'to',
         name: 'You',
@@ -39,6 +41,7 @@ export class ConversationComponent implements OnInit {
         time: new Date().toLocaleTimeString(),
       });
       this.promptForm.reset();
+      this.chatSrv.getTherapistResponse(current_prompt, previous_prompt);
     }
   }
 }

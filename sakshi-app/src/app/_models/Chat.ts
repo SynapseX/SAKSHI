@@ -11,8 +11,8 @@
 
 export interface ChatResponse {
     timestamp: string;
-    app_response: string;
-    critic_prompt: string;
+    therapist_response: string;
+    user_response ?: string;
 }
 
 export interface Chat {

@@ -61,6 +61,9 @@ export class SessionsComponent implements OnInit, OnDestroy {
     this.sessSrv.createSession(this.sessionForm.value).subscribe({
       next: (res) => {
         console.log(res);
+        localStorage.setItem('session_id', res.session.session_id);
+        let base_location = window.location.origin;
+        window.location.href = base_location + '/chat/';
       },
     });
   }

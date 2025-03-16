@@ -1,4 +1,5 @@
 # backend/app/main.py
+import json
 import uuid
 import logging
 
@@ -6,7 +7,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.app.models.models import UserProfile
+from backend.app.models.models import UserProfile, SessionCreateRequest
 from backend.app.services.mongodb_service import db
 from backend.app.services.session_manager import SessionManager
 from services.conversation_service import process_user_prompt
@@ -57,17 +58,12 @@ async def handle_prompt(request: PromptRequest):
 
     return result
 
-# Define request model for creating a session
-class SessionCreateRequest(BaseModel):
-    uid: str
-    duration: int  # e.g., "1 hour", "1 day", "1 year"
-    metadata: dict = {}  # Optional additional info
 
-@app.post("/sessions/")
+@app.post("/sessions")
 def create_session(request: SessionCreateRequest):
     try:
         session = session_manager.create_session(request.uid, request.duration, request.metadata)
-        return {"message": "Session created", "session": session}
+        return {"message": "Session created", "session": json.loads(json.dumps(session, default=str))}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

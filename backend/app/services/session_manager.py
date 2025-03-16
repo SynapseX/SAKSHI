@@ -23,7 +23,6 @@ class SessionManager:
             "status": "active",
             "metadata": metadata or {}
         }
-        self.sessions[session_id] = session_data
         db['sessions'].insert_one(session_data)
         return session_data
 
@@ -70,3 +69,10 @@ class SessionManager:
             return start_time + timedelta(hours=value)
         else:
             raise ValueError("Unsupported duration format. Use 'minute(s)', 'hour(s)', 'day(s)', or 'year(s)'.")
+
+    def upsert_session(self, session_id: str, session_data: dict):
+        """
+        Upsert a session in the database. If the session does not exist, it will be created.
+        If it exists, it will be updated with the provided session_data.
+        """
+        db['sessions'].update_one({"session_id": session_id}, {"$set": session_data}, upsert=True)

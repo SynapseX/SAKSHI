@@ -17,7 +17,6 @@ if ENV.lower() == "dev" or ENV.lower() == "prod":
     print("Connecting to MongoDB Atlas...")
     client = MongoClient(MONGODB_URL, tlsCAFile=ca)
     db = client["sakshi_db"]
-    print(db.list_collections())
 else:
     print("Connecting to local MongoDB...")
     client = MongoClient("mongodb://localhost:27017")

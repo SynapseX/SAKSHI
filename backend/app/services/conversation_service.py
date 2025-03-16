@@ -8,10 +8,12 @@ from backend.app.services.llm_connector import generate_response, create_prompt
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
 from backend.app.services.phase_shifter import phase_shifter
+from backend.app.services.session_manager import SessionManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+session_manager = SessionManager()
 # Define the ordered list of phases (adjust as needed)
 PHASE_SEQUENCE = [
     "Initial Phase",
@@ -43,7 +45,8 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     Retrieves previous context, decides on phase shift, generates feedback or follow-up questions,
     and logs the session under each phase (as a list of conversation entries).
     """
-    previous_context, current_phase = analyze_previous_chats(user_id, max_tokens)
+    previous_context, current_phase = analyze_previous_chats(session_id, max_tokens)
+    session = session_manager.get_session(session_id)
     if not previous_context:
         logger.info(f"No previous context found for user: {user_id}. Starting Initial Phase.")
         current_phase = "Initial Phase"
@@ -52,7 +55,7 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     logger.info(f"Processing prompt for user {user_id} in {current_phase}: {prompt}")
 
     # Phase shifting decision based on previous context and latest prompt.
-    phase_decision, user_situation = phase_shifter(previous_context, prompt, current_phase, user_id, db, recent_question,
+    phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, db, recent_question,
                                                    max_tokens)
 
     if phase_decision == "advance":
@@ -101,37 +104,35 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
         }
 
 
-def analyze_previous_chats(user_id: str, max_tokens: int):
+def analyze_previous_chats(session_id: str, max_tokens: int):
     """
     Retrieve and analyze previous conversations from MongoDB to create context for the current session.
     Aggregates conversation logs from each phase (stored as lists) and returns a tuple:
     (truncated conversation context, current phase based on the latest session document).
     """
-    cursor = db['sessions'].find({"user_id": user_id})
-    sessions = list(cursor)[:100]
-    if not sessions:
+    session = session_manager.get_session(session_id)
+    if not session:
         return None, None
 
     all_chats_list = []
-    for session in sessions:
-        phases = session.get("phases", {})
-        for phase_name, logs in phases.items():
-            if isinstance(logs, list):
-                for log in logs:
-                    user_prompt = log.get("user_prompt", "")
-                    ai_response = log.get("ai_response", "")
-                    all_chats_list.append(f"{phase_name} - User: {user_prompt} | AI: {ai_response}")
-            else:
-                log = logs
+    phases = session.get("phases", {})
+    for phase_name, logs in phases.items():
+        if isinstance(logs, list):
+            for log in logs:
                 user_prompt = log.get("user_prompt", "")
                 ai_response = log.get("ai_response", "")
                 all_chats_list.append(f"{phase_name} - User: {user_prompt} | AI: {ai_response}")
+        else:
+            log = logs
+            user_prompt = log.get("user_prompt", "")
+            ai_response = log.get("ai_response", "")
+            all_chats_list.append(f"{phase_name} - User: {user_prompt} | AI: {ai_response}")
 
     previous_context = " ".join(all_chats_list)
     tokenized_context = tokenize_text(previous_context)
     truncated_tokens = truncate_to_max_tokens(tokenized_context, max_tokens)
     # Use the current phase from the most recent session (sorted by last_updated)
-    current_phase = sessions[0].get('current_phase', "Initial Phase")
+    current_phase = session.get('current_phase', "Initial Phase")
     return " ".join(truncated_tokens), current_phase
 
 def detokenize_text(tokens):
@@ -151,7 +152,7 @@ def log_session(session_id: str, user_id: str, current_phase: str, prompt: str, 
         "timestamp": datetime.utcnow().isoformat()
     }
     # Retrieve existing session if any
-    existing = db['sessions'].find_one({"_id": session_id})
+    existing = session_manager.get_session(session_id)
     if existing and "phases" in existing:
         phases = existing["phases"]
     else:
@@ -173,9 +174,9 @@ def log_session(session_id: str, user_id: str, current_phase: str, prompt: str, 
         "phases": phases,
         "last_updated": datetime.utcnow()
     }
-    result = db['sessions'].update_one({"_id": session_id}, {"$set": session_data}, upsert=True)
+    result = session_manager.upsert_session(session_id, session_data)
     logger.info(
-        f"Logged session update for session_id {session_id} in phase {current_phase}. Modified: {result.modified_count}")
+        f"Logged session update for session_id {session_id} in phase {current_phase}")
 
 
 def generate_advance_questions(previous_context: str, prompt: str, current_phase: str, user_id: str):
@@ -202,11 +203,13 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         
         **Inputs Provided:**
         - **Current Phase:** {current_phase}
+        - **Phase** : {phase_intent}
         - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase')}
         - **User Situation:** {user_situation_text}  
           *(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
         - **Previous Context:** {previous_context}
         - **User's Prompt:** '{prompt}'
+        
         
         Chain-of-Thought Reasoning:
         1. **Context Analysis:** Examine the previous conversation and the client's most recent prompt to identify key emotional cues and any gaps or resistance in their narrative.
@@ -216,20 +219,18 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         5. **Empathy & Clarity:** Ensure the question is open-ended, empathetic, and encourages further elaboration on their experiences.
         
         Task:
-        Generate one advance question based on the above details.
+        Generate one advance question/statement based on the above Current Phase examples, intent, goal.
         
         Response Format:
         Please provide your final answer in JSON format with the following keys:
-        - "advance_question": (The advance question you generated)
-        - "intention": (A brief explanation of why this question is appropriate and how it bridges the client's current state with the next phase)
-        - "chain_of_thought": (A bullet-point list summarizing your reasoning process)
+        - "advance_question": (The advance question/statement you generated)
+        - "intention": (A brief explanation of why this question/statement is appropriate and how it bridges the client's current state with the next phase)
         
         Example Output:
         ```json
         {{
           "advance_question": "Can you describe a recent experience where you sensed a shift in your emotions, and what do you think contributed to that change?",
           "intention": "This question invites deeper reflection on the client's recent emotional shifts, clarifies any ambiguity, and helps transition them toward the next phase by addressing gaps in understanding.",
-          "chain_of_thought": "- Analyzed the client's emotional cues; - Identified need for more detail on recent changes; - Recognized subtle resistance in describing emotions; - Formulated an empathetic, open-ended question aligned with phase intent."
         }}
         ```
        """
@@ -257,39 +258,38 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
     )
     full_prompt = (
         f"""
-        Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Ensure that your inquiry is aligned with the current phase’s goals, helps clarify the client's emotions, and checks for any signs of distress.
+        Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Additionally, if the user asks any questions, provide a thoughtful and supportive answer. Ensure that your inquiry is aligned with the current phase’s goals, helps clarify the client's emotions, and checks for any signs of distress.
             
             **Inputs Provided:**
             - **Current Phase:** {current_phase}
-            - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase')}
+            - **Phase** : {phase_intent}
+            - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase').get('intent', 'Unknown Intent')}
+            - **Approach**: {phase_intent.get(current_phase, {}).get("approach", "questions")}
             - **User Situation:** {user_situation_text}  
               *(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
             - **Previous Context:** {previous_context}
             - **User's Prompt:** '{prompt}'
             
-            **Chain-of-Thought Reasoning:**
-            1. **Emotional Reflection:** Review the user's current emotional cues and level of detail.
-            2. **Clarification of Goals:** Consider whether the client’s response aligns with the therapeutic objectives for the current phase.
-            3. **Identify Ambiguity or Resistance:** Look for any signs of resistance, ambivalence, or insufficient detail that may hinder deeper understanding.
-            4. **Safety and Risk Assessment:** Note if there are any safety concerns or signals of distress requiring further exploration.
-            5. **Active Reflective Listening:** Ensure that the follow-up question is open-ended, supportive, and encourages the client to elaborate further.
-            6. **Session Continuity:** Optionally, check if clarifying the session goals or next steps is needed for continuity.
-            
             **Task:**
-            Generate one follow-up question based on the above details that invites the client to elaborate on their experience and address any potential gaps or resistance in their narrative.
+            Generate one follow-up question/statement based on the above details that the client has shared, the current phase's intent, and the need to address potential resistance or ambiguity. If the user asks any questions, provide a thoughtful and supportive answer.
             
+            **Methodology:**
+            1. Under follow-up-question, provide the value strictly as per the format specified in the Approach. 
+                a. If the Approach says Questions then provide a question.
+                b. If the Approach says Statements then provide a statement.
+                c. If the Approach says Both Then provide Both a question and a statement.
+                d. If the Approach says question and still there is a question from user in user prompt then you need address the question first by providing an answer and following up with a question.
+            2. Under intention, provide a brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase. 
             **Response Format:**
             Please provide your final answer in JSON format with the following keys:
-            - `"follow_up_question"`: The follow-up question you have generated.
-            - `"intention"`: A brief explanation of why this question is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase.
-            - `"chain_of_thought"`: A bullet-point list summarizing your step-by-step reasoning process.
+            - `"follow_up_question"`: The follow-up question/statement you have generated.
+            - `"intention"`: A brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase.
             
             **Example Output:**
             ```json
             {{
               "follow_up_question": "Can you tell me more about what you experienced when you mentioned feeling uncertain about your emotions, and what you think might be causing that uncertainty?",
               "intention": "This question is designed to explore potential ambivalence in the client's response, encouraging deeper reflection on their emotional state and underlying causes, which is essential for progressing in the current phase.",
-              "chain_of_thought": "- Reviewed the client's emotional cues; - Noted ambiguity regarding emotional uncertainty; - Considered the need to address potential resistance; - Formulated a question to invite deeper self-reflection."
             }}
             ```
         """

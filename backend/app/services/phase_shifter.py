@@ -1,5 +1,7 @@
 # backend/services/phase_shifter.py
 import random
+from datetime import datetime
+
 from backend.app.services.llm_connector import generate_response
 from backend.app.services.phase_intent import phase_intent
 
@@ -30,7 +32,7 @@ def analyze_user_situation(prompt: str) -> dict:
         }
 
 
-def phase_shifter(prev_conversation_log: str, prompt: str, current_phase: str, user_id: str, db, recent_question: str,
+def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phase: str, user_id: str, db, recent_question: str,
                   max_tokens: int = 4096) -> (str, dict):
     """
     Uses LLM analysis of the recent prompt to extract the user's situation and decide whether the current
@@ -50,72 +52,53 @@ def phase_shifter(prev_conversation_log: str, prompt: str, current_phase: str, u
 
     # Construct the improved prompt for phase shifting.
     full_prompt_text = (
-        f""" Context:
-            Previous Conversation: {prev_conversation_log}
-            
-            Current Phase: {current_phase}
-            Phases : {phase_intent}
-            Phase Intent: {phase_intent.get(current_phase, 'No detailed intent provided.')}
-            User Situation: The client is described as having an emotional state of '{user_situation.get('emotional_state', 'unclear')}' and facing '{user_situation.get('current_issue', 'an undefined challenge')}'. Consider also the client's emotional history and recurring patterns observed over multiple sessions.
-            Last Question Asked: {recent_question}
-            Latest User Answer: {prompt}
-            
-            Additional Context:
-            - The client has participated in multiple sessions addressing key emotional themes.
-            - While some progress is noted, there may be inconsistencies, hesitations, or isolated unresolved issues that could indicate incomplete processing.
-            - The objective is to remain in the current phase until there is overwhelming, repeated, and unambiguous evidence (across several sessions) that every element of the phase objectives is fully resolved.
-            - Even a single instance of lingering ambiguity, hesitation, or minor unresolved issues should prompt further probing rather than a phase transition.
-            - Your role is to act as a supportive assistant to the therapist, ensuring that the client’s progress is sustained and comprehensive, not just momentarily clear.
-            
-            Chain-of-Thought Reasoning:
-            1. **Thorough Emotional Evaluation:**
-               - Examine the client's latest response for clear, deep, and consistent emotional processing.
-               - Compare with prior sessions to confirm repeated demonstrations of insight and resolution.
-            2. **Robust Phase Verification:**
-               - Confirm that every component of the current phase’s intent has been addressed thoroughly and repeatedly.
-               - Identify any lingering doubts, inconsistencies, or unresolved issues, no matter how minor.
-            3. **Deliberate Caution Against Premature Transition:**
-               - Even if a positive response is observed, check for any signs of partial resolution or residual hesitation.
-               - Do not advance if even one element remains ambiguous or inconsistently addressed across sessions.
-            4. **Targeted Probing for Full Resolution:**
-               - If any gaps or uncertainties exist, generate probing questions that explicitly target these areas to drive further clarification.
-            5. **Safety and Stability Confirmation:**
-               - Continuously monitor for any signs of distress or instability; any such signals demand continued probing.
-            
-            ---
-            Decision Task:
-            - **Advance:**  
-              Recommend a phase transition **only if** there is overwhelming, repeated, and unequivocal evidence that every aspect of the current phase’s objectives has been completely resolved. This requires:
-              - Multiple sessions in which the client consistently demonstrates deep emotional processing and clear, sustained behavioral change.
-              - No isolated instances of hesitation, ambiguity, or partial resolution—every signal must confirm complete resolution.
-              - If the evidence is robust and unambiguous, the decision to advance is appropriate.
-              - If the client's responses are consistently clear, insightful, and fully aligned with the phase objectives, consider advancing.
-              - If there is more than 2 questions in a single phase then consider advancing.
-              
-            - **More Questions:**  
-              If there is even a single instance of lingering ambiguity, hesitation, or partial resolution in any response—even if most responses are positive—continue to ask additional, targeted probing questions. This ensures:
-              - Every element of the phase’s objectives is fully addressed before moving on.
-              - The therapist remains in the current phase to foster comprehensive and stable progress.
-              
-            - **Crisis:**  
-              Immediately indicate a crisis if clear and serious signs of distress or risk are detected. This includes:
-              - Direct signals of acute emotional instability, such as expressions of self-harm, overwhelming panic, or severe despair.
-              - Any behavior that suggests immediate danger to the client’s safety, regardless of phase progress.
-            
-            Instructions:
-            Please provide your final answer in JSON format with the following keys:
-            - "decision": (choose one of "advance", "more_questions", or "crisis")
-            - "reason": (a concise explanation of your decision, clearly referencing the need for repeated, unambiguous evidence before advancing, or the presence of even minor ambiguities)
-            - "chain_of_thought": (a detailed bullet-point list outlining each step of your reasoning process, explicitly stating why any lingering issues necessitate further exploration)
-            
-            Example Output:
-            ```json
-            {{
-              "decision": "more_questions",
-              "reason": "Although there is some positive evidence, multiple sessions reveal isolated ambiguities and minor unresolved issues. The evidence is not yet robust and repeated enough to confirm full resolution, so further probing is required.",
-              "chain_of_thought": "- Analyzed recent response for emotional clarity; - Compared with previous sessions and found intermittent inconsistencies; - Noted isolated instances of hesitation; - Determined that not all phase objectives have been fully and repeatedly met; - Chose 'more_questions' to ensure complete resolution."
-            }}
-            ```
+        f""" 
+                **Context:**  
+        You are a structured assistant ensuring a therapist's session remains on track. Your goal is to determine when to shift to the next phase while ensuring all phases are completed before the session ends.  
+        
+        - **Session Start:** {session['created_at']}  
+        - **Session End:** {session['expires_at']}  
+        - **Current Time:** {datetime.utcnow()}  
+        - **Phases & Weightage:** {phase_intent}  
+        - **Current Phase:** {current_phase}  
+        - **User Situation:** {user_situation}
+        
+        ---
+        
+        **Decision Process:**  
+        1️⃣ **Time-Based Positioning:** Convert the session timeline into a **100-unit scale** and compare the **current phase’s expected time window** with the actual progress.  
+        
+        2️⃣ **Phase Objective Check:** If the current phase is **not fully resolved**, determine if there's still time to ask more questions.  
+        
+        3️⃣ **Phase Transition Rules:**  
+           - **If the session is behind schedule**, prioritize **efficiency**.  
+           - **If time is running out**, advance even if some uncertainty remains.  
+           - **If phase objectives are met ahead of time**, advance early.  
+        
+        4️⃣ **Final Completion Guarantee:** Ensure **no phase is skipped** before the session ends.  
+        
+        ---
+        
+        **Decision Guidelines:**  
+        - **"advance"** if phase objectives are met and session timing demands it.  
+        - **"more_questions"** if phase objectives are unclear and time permits.  
+        - **"crisis"** if immediate emotional distress is detected.  
+        
+        ---
+        
+        **JSON Output Format:**
+        ```json
+        {{
+          "decision": "more_questions",
+          "reason": "User has unresolved concerns, and there is still time available for probing.",
+          "chain_of_thought": [
+            "Checked current session progress: 35% complete.",
+            "Phase 2 ideally should end by 30%, but user responses show uncertainty.",
+            "Remaining time allows further exploration without disrupting the session.",
+            "Decided to ask more questions."
+          ]
+        }}
+
     """)
 
     # Get the LLM response.`
