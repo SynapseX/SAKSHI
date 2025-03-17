@@ -12,7 +12,7 @@ ENV = os.getenv("ENV", "dev")
 
 if ENV.lower() == "dev" or ENV.lower() == "prod":
     print("Connecting to MongoDB Atlas...")
-    client = MongoClient(MONGODB_URL, tlsCAFile=ca)
+    client = MongoClient(MONGODB_URL)
     db = client["sakshi_db"]
 else:
     print("Connecting to local MongoDB...")

@@ -1,87 +1,101 @@
-<div class="mx-auto bg-white rounded m-8 p-2 max-w-2xl shadow">
-  <h3 class="text-lg">Active Sessions</h3>
-  @for (sess of activeSessions; track $index) {
-  <app-sess [session]="sess"></app-sess>
-  }
-
-  <h3 class="text-lg font-semibold">Create Sessions</h3>
-  <form
-    [formGroup]="sessionForm"
-    (ngSubmit)="sessionForm.valid && submitSessionForm()"
-  >
-    <div class="flex items-center space-x-2">
-      <label for="">Duration</label>
-      <div class="flex">
-        <select
-          name="sessionDuration"
-          formControlName="sessionDuration"
-          class="input"
-        >
-          @for (m of minutes; track m) {
-          <option [value]="m">{{ m }}</option>
-          }
-        </select>
-        <span> Minutes</span>
+<div
+  class="grid grid-cols-1 md:grid-cols-[12rem,1fr] lg:grid-cols-[20rem,1fr] min-h-96 p-8"
+>
+  <div class="bg-white mr-2">
+    <div class="border-2 border-gray-300 rounded-lg w-full h-full">
+      <h3 class="font-semibold text-center p-2">Active Sessions</h3>
+      @if (activeSessions && activeSessions.length > 0) {
+      <div class="grid grid-cols-1">
+        @for (sess of activeSessions; track $index) {
+        <app-sess [session]="sess"></app-sess>
+        }
       </div>
+      }@else {
+      <app-empty-box msg="No Sessions as of Now"></app-empty-box>
+      }
     </div>
-    <div class="formControlWrap">
-      <label for="">Goals and Expectations</label>
-      <input
-        class="input"
-        type="text"
-        name="treatmentGoals"
-        id="treatmentGoals"
-        placeholder="Treatment and Goals"
-        formControlName="treatmentGoals"
-      />
-      <input
-        class="input"
-        type="text"
-        name="clientExpectations"
-        id="clientExpectations"
-        placeholder="Client Expectations"
-        formControlName="clientExpectations"
-      />
-    </div>
-    <div class="formControlWrap">
-      <label for="">Session Notes</label>
-      <textarea
-        class="input"
-        name="sessionNotes"
-        id="sessionNotes"
-        cols="30"
-        rows="3"
-        formControlName="sessionNotes"
-      ></textarea>
-    </div>
-    <div class="formControlWrap">
-      <label for="">Termination</label>
-      <input
-        class="input"
-        type="text"
-        placeholder="Termination Plan"
-        name="terminationPlan"
-        formControlName="terminationPlan"
-      />
-      <input
-        class="input"
-        type="text"
-        placeholder="Review of Progress"
-        name="reviewOfProgress"
-        formControlName="reviewOfProgress"
-      />
-      <input
-        class="input"
-        type="text"
-        placeholder="Thank You NOTE"
-        name="thankYouNote"
-        formControlName="thankYouNote"
-      />
-    </div>
-    <div>
-      <button type="submit" class="py-2 px-3 bg-green-500 text-white rounded">
-        Create Session
-      </button>
-    </div>
-  </form>
+  </div>
+
+  <div class="bg-white rounded m-8 p-2 max-w-2xl shadow">
+    <h3 class="text-lg font-semibold">Create Sessions</h3>
+    <form
+      [formGroup]="sessionForm"
+      (ngSubmit)="sessionForm.valid && submitSessionForm()"
+    >
+      <div class="flex items-center space-x-2">
+        <label for="">Duration</label>
+        <div class="flex">
+          <select
+            name="sessionDuration"
+            formControlName="sessionDuration"
+            class="input"
+          >
+            @for (m of minutes; track m) {
+            <option [value]="m">{{ m }}</option>
+            }
+          </select>
+          <span> Minutes</span>
+        </div>
+      </div>
+      <div class="formControlWrap">
+        <label for="">Goals and Expectations</label>
+        <input
+          class="input"
+          type="text"
+          name="treatmentGoals"
+          id="treatmentGoals"
+          placeholder="Treatment and Goals"
+          formControlName="treatmentGoals"
+        />
+        <input
+          class="input"
+          type="text"
+          name="clientExpectations"
+          id="clientExpectations"
+          placeholder="Client Expectations"
+          formControlName="clientExpectations"
+        />
+      </div>
+      <div class="formControlWrap">
+        <label for="">Session Notes</label>
+        <textarea
+          class="input"
+          name="sessionNotes"
+          id="sessionNotes"
+          cols="30"
+          rows="3"
+          formControlName="sessionNotes"
+        ></textarea>
+      </div>
+      <div class="formControlWrap">
+        <label for="">Termination</label>
+        <input
+          class="input"
+          type="text"
+          placeholder="Termination Plan"
+          name="terminationPlan"
+          formControlName="terminationPlan"
+        />
+        <input
+          class="input"
+          type="text"
+          placeholder="Review of Progress"
+          name="reviewOfProgress"
+          formControlName="reviewOfProgress"
+        />
+        <input
+          class="input"
+          type="text"
+          placeholder="Thank You NOTE"
+          name="thankYouNote"
+          formControlName="thankYouNote"
+        />
+      </div>
+      <div>
+        <button type="submit" class="py-2 px-3 bg-green-500 text-white rounded">
+          Create Session
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

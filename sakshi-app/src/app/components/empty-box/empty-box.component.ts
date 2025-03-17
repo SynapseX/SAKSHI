@@ -7,6 +7,6 @@ import { Component, Input } from '@angular/core';
   templateUrl: './empty-box.component.html',
 })
 export class EmptyBoxComponent {
-  @Input() icon: string = 'featherAlertCircle';
+  @Input() icon: string = 'info';
   @Input() msg: string = '';
 }
