@@ -10,11 +10,17 @@ import { CommonModule } from '@angular/common';
 import { SessComponent } from './sess/sess.component';
 import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { EmptyBoxComponent } from '../components/empty-box/empty-box.component';
 
 @Component({
   selector: 'app-sessions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SessComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    SessComponent,
+    EmptyBoxComponent,
+  ],
   templateUrl: './sessions.component.html',
   styleUrl: './sessions.component.scss',
 })

@@ -55,8 +55,7 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     logger.info(f"Processing prompt for user {user_id} in {current_phase}: {prompt}")
 
     # Phase shifting decision based on previous context and latest prompt.
-    phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, db, recent_question,
-                                                   max_tokens)
+    phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, db, recent_question, max_tokens)
 
     if phase_decision == "advance":
         next_phase = get_next_phase(current_phase)
@@ -134,9 +133,6 @@ def analyze_previous_chats(session_id: str, max_tokens: int):
     # Use the current phase from the most recent session (sorted by last_updated)
     current_phase = session.get('current_phase', "Initial Phase")
     return " ".join(truncated_tokens), current_phase
-
-def detokenize_text(tokens):
-    return ' '.join(tokens)
 
 
 def log_session(session_id: str, user_id: str, current_phase: str, prompt: str, response: str, user_situation,
@@ -258,7 +254,7 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
     )
     full_prompt = (
         f"""
-        Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Additionally, if the user asks any questions, provide a thoughtful and supportive answer. Ensure that your inquiry is aligned with the current phase’s goals, helps clarify the client's emotions, and checks for any signs of distress.
+        Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Additionally, if the user asks any questions, provide a thoughtful and supportive answer. Ensure that your inquiry is aligned with the current phase's goals, helps clarify the client's emotions, and checks for any signs of distress.
             
             **Inputs Provided:**
             - **Current Phase:** {current_phase}
@@ -302,6 +298,8 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
 def tokenize_text(text: str):
     return text.split(" ")
 
+def detokenize_text(tokens):
+    return ' '.join(tokens)
 
 def truncate_to_max_tokens(tokens, max_tokens):
     return tokens[:max_tokens]
