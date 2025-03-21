@@ -10,7 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 from backend.app.models.models import UserProfile, SessionCreateRequest
 from backend.app.services.mongodb_service import db
 from backend.app.services.session_manager import SessionManager
-from services.conversation_service import process_user_prompt
+from backend.app.services.conversation_service import process_user_prompt
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -100,6 +100,9 @@ def list_active_sessions_by_user(user_id: str):
     active_sessions = session_manager.list_active_sessions_by_user(user_id)
     return {"active_sessions": active_sessions}
 
+@app.get('/health')
+async def health():
+    return {"status": "ok"}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host='0.0.0.0', port=8000)

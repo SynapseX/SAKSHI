@@ -1,27 +1,50 @@
-FROM node:18 AS build-angular
-WORKDIR /app/sakshi-app
-COPY sakshi-app/package.json sakshi-app/yarn.lock ./
-RUN yarn install
-COPY sakshi-app/ .
-RUN yarn build
+# Stage 1: Build the Angular frontend
+FROM node:18-alpine AS frontend-builder
 
-# Build FastAPI Backend
-FROM python:3.11 AS build-fastapi
-WORKDIR /app/backend
-COPY backend/ .
+WORKDIR /app/sakshi-app
+
+COPY sakshi-app/package*.json ./
+RUN npm install
+
+COPY sakshi-app/. ./
+
+RUN npm run build
+
+# Stage 2: Build the Python backend
+FROM python:3.9-slim-buster AS backend-builder
+
+WORKDIR /app/backend/app
+
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create final container with nginx
-FROM nginx:alpine
+COPY backend/app/. .
 
-# Copy Angular build to nginx html directory
-COPY --from=build-angular /app/sakshi-app/dist/your-angular-app /usr/share/nginx/html
+# Stage 3: Combine frontend and backend into a single image
+FROM python:3.9-slim-buster
 
-# Copy FastAPI app
-COPY --from=build-fastapi /app/backend /app/backend
+# Install nginx
+RUN apt-get update && apt-get install -y nginx
 
-# Expose necessary ports
+# Copy the built Angular app
+COPY --from=frontend-builder /app/sakshi-app/dist/sakshi-app /usr/share/nginx/html
+
+# Copy the Python backend
+COPY --from=backend-builder /app/backend/app /app/backend/app
+
+# Install backend requirements in final stage.
+COPY backend/requirements.txt /app/backend/app/requirements.txt
+RUN pip install --no-cache-dir -r /app/backend/app/requirements.txt
+
+# Copy a startup script
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose the Nginx port
 EXPOSE 80
 
-# Start FastAPI and nginx
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 & nginx -g 'daemon off;'"]
+# Start Nginx and the backend
+CMD ["/startup.sh"]

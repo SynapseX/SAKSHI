@@ -1,7 +1,6 @@
 fastapi
 uvicorn
-motor
 pydantic
 google-genai
-PyObjectId
-pymongo[4.11.2]
+pymongo
+dnspython

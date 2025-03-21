@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import type { Chat, ChatResponse } from '../_models/Chat';
 import { BehaviorSubject } from 'rxjs';
 import {HttpClient} from "@angular/common/http";
-
+import {API_BASE_URL}  from  "./api-config-constants";
 const therapist_responses = [
   "Hi, how are you feeling today? What made you decide to come in, and what would you like us to explore during this session?",
   "Hello, how have you been today? Can you share what led you here and what you'd like to focus on during our conversation?",
@@ -10,7 +10,7 @@ const therapist_responses = [
   "Hi there, how's everything going? What motivated you to reach out today, and what are your main concerns for our time together?",
   "Hello, how are you today? Could you tell me what prompted you to seek help and which areas you'd like to focus on during our meeting?"
 ];
-const apiUrl = 'http://localhost:8000';
+const apiUrl = API_BASE_URL;
 
 const responses: ChatResponse[] = [
   {

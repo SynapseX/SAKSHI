@@ -37,8 +37,8 @@
     "scripts": {
         "ng": "ng",
         "start": "node set-env.js && ng serve",
-        "build": "ENV=production node set-env.js && ng build --prod",
-        "watch": "ENV=production node set-env.js && ng build --watch --configuration development",
+        "build": "node set-env.js && ng build",
+        "watch": "node set-env.js && ng build --watch --configuration development",
         "test": "ng test"
     }
 }

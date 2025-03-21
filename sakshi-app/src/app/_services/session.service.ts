@@ -3,8 +3,10 @@ import { Injectable } from '@angular/core';
 
 import { BehaviorSubject, map } from 'rxjs';
 import { Session } from '../_models/Session';
+import {API_BASE_URL}  from  "./api-config-constants";
 
-const apiUrl = 'http://localhost:8000';
+const apiUrl = API_BASE_URL;
+
 
 @Injectable({
   providedIn: 'root',
