@@ -1,29 +1,32 @@
-# Use an official Node.js runtime as a base image
-FROM node:19-alpine AS builder
+# Stage 1: Build the Angular application
+FROM node:18-alpine AS build
 
-# Set the working directory inside the container
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package.json and package-lock.json (or yarn.lock)
+COPY package.json ./
+COPY yarn.lock ./
 
 # Install dependencies
 RUN yarn install
 
-# Copy the application source code
+# Copy the rest of the application files
 COPY . .
 
-# Build the application
+# Build the Angular application for production
 RUN yarn run build
 
-# Use Nginx as a web server
-FROM nginx:latest
+# RUN ls -l /app/client/dist
 
-# Copy the built application to the Nginx webroot
-COPY --from=builder /app/dist/my-angular-app /usr/share/nginx/html
+# Stage 2: Serve the built application with nginx
+FROM nginx:alpine
 
-# Expose port 80
+# Copy the built application from the build stage
+COPY --from=build /app/dist/sakshi-app/browser /usr/share/nginx/html
+
+# Expose port 80 (default nginx port)
 EXPOSE 80
 
-# Start Nginx
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
