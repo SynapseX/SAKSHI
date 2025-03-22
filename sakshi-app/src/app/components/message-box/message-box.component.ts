@@ -20,7 +20,7 @@ import { ChatService } from '../../_services/chat.service';
   styleUrl: './message-box.component.scss',
 })
 export class MessageBoxComponent implements OnInit, AfterViewInit {
-  @ViewChild('scrollRef') private myScrollContainer!: ElementRef;
+  @ViewChild('scrollRef') private myScrollContainer !: ElementRef;
 
   recentChats: Chat[] = [];
 
@@ -34,19 +34,12 @@ export class MessageBoxComponent implements OnInit, AfterViewInit {
         this.recentChats = chats;
       },
       complete: () => {
-        this.scrollToBottom();
       },
     });
   }
 
   ngAfterViewInit() {
-    this.scrollToBottom();
+    this.chatSrv.setScrollRef(this.myScrollContainer);
   }
 
-  scrollToBottom(): void {
-    try {
-      this.myScrollContainer.nativeElement.scrollTop =
-        this.myScrollContainer.nativeElement.scrollHeight;
-    } catch (err) {}
-  }
 }

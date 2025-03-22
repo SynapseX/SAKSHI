@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {ElementRef, Injectable} from '@angular/core';
 import type { Chat, ChatResponse } from '../_models/Chat';
 import { BehaviorSubject } from 'rxjs';
 import {HttpClient} from "@angular/common/http";
@@ -26,6 +26,7 @@ const responses: ChatResponse[] = [
 export class ChatService {
   currentChatsSource = new BehaviorSubject<Chat[]>([]);
   currentChats$ = this.currentChatsSource.asObservable();
+  private scrollRef !: ElementRef;
 
   constructor(private httpClient: HttpClient) {}
 
@@ -48,6 +49,7 @@ export class ChatService {
   }
   addChat(chat: Chat) {
     this.currentChatsSource.next([...this.currentChatsSource.value, chat]);
+    this.scrollToBottom()
   }
 
   getTherapistResponse(user_message: string, previous_prompt: string) {
@@ -67,5 +69,20 @@ export class ChatService {
             };
             this.addChat(chat);
           });
+  }
+
+  scrollToBottom(): void {
+    try {
+      setTimeout(() => {
+        const atBottom = this.scrollRef.nativeElement.scrollHeight - this.scrollRef.nativeElement.scrollTop === this.scrollRef.nativeElement.clientHeight;
+        if (!atBottom) {
+          this.scrollRef.nativeElement.scrollTop = this.scrollRef.nativeElement.scrollHeight;
+        }
+      }, 100); // Adjust the timeout duration as needed
+    } catch (err) {}
+  }
+
+  setScrollRef(myScrollContainer: ElementRef) {
+    this.scrollRef = myScrollContainer;
   }
 }
