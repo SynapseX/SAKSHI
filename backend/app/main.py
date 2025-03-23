@@ -62,7 +62,7 @@ async def handle_prompt(request: PromptRequest):
 @app.post("/sessions")
 def create_session(request: SessionCreateRequest):
     try:
-        session = session_manager.create_session(request.uid, request.duration, request.metadata)
+        session = session_manager.create_session(request)
         return {"message": "Session created", "session": json.loads(json.dumps(session, default=str))}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

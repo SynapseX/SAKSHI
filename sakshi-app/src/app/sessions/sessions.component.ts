@@ -11,6 +11,8 @@ import { SessComponent } from './sess/sess.component';
 import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { EmptyBoxComponent } from '../components/empty-box/empty-box.component';
+import {Router} from "@angular/router";
+import {ConversationComponent} from "../conversation/conversation.component";
 
 @Component({
   selector: 'app-sessions',
@@ -35,7 +37,8 @@ export class SessionsComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private sessSrv: SessionService,
-    private tstSrv: ToastrService
+    private tstSrv: ToastrService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -74,8 +77,8 @@ export class SessionsComponent implements OnInit, OnDestroy {
         this.tstSrv.success(res.message);
         localStorage.setItem('session_id', res.session.session_id);
         let base_location = window.location.origin;
-        window.location.href = base_location + '/chat/';
-      },
+        this.router.navigate(['/chat']);
+        },
     });
   }
 

@@ -2,7 +2,7 @@
 import random
 from datetime import datetime
 
-from backend.app.services.llm_connector import generate_response
+from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.phase_intent import phase_intent
 
 
@@ -20,7 +20,7 @@ def analyze_user_situation(prompt: str) -> dict:
         "\"emotional_history\": \"has felt anxious for months due to workload\", "
         "\"therapeutic_phase\": \"stabilization\"}"
     )
-    response = generate_response(llm_prompt)
+    response = generate_json_response(llm_prompt)
     try:
         return response if isinstance(response, dict) else {}
     except Exception:
@@ -102,7 +102,7 @@ def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phas
     """)
 
     # Get the LLM response.`
-    response = generate_response(full_prompt_text)
+    response = generate_json_response(full_prompt_text)
     # Extract the decision from the LLM output.
     decision = response.get('decision', 'advance')
     # If the decision is not one of the valid options, fallback to random selection.
