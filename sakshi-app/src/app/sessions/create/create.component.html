@@ -1,0 +1,103 @@
+<div class="bg-white rounded mt-2 md:mt-0 p-8 shadow max-w-4xl mx-2 md:mx-auto">
+  <p class="text-base my-2">
+    <a routerLink="/sessions" class="text-blue-500">See all Sessions</a>
+  </p>
+  <!--  -->
+  <div class="h-[1px] bg-gray-200 my-4 overflow-hidden"></div>
+  <!--  -->
+  <h3 class="text-lg font-extrabold mb-6 text-gray-500">
+    Start a Session with <span class="text-gray-700">SAKSHI</span
+    ><span class="text-green-500">.AI</span>
+  </h3>
+  <form [formGroup]="sessionForm" (ngSubmit)="submitSessionForm()">
+    <mat-form-field>
+      <mat-label>Duration</mat-label>
+      <mat-select name="sessionDuration" formControlName="sessionDuration">
+        @for (m of minutes; track m) {
+        <mat-option [value]="m">{{ m }} Mins</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <div class="">
+      <h3 class="mb-2">Goals and Expectations</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
+        <mat-form-field class="w-full">
+          <mat-label>Treatment and Goals</mat-label>
+          <input
+            matInput
+            name="treatmentGoals"
+            formControlName="treatmentGoals"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>Client Expectations</mat-label>
+          <input
+            matInput
+            name="clientExpectations"
+            formControlName="clientExpectations"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="">
+      <h3 class="mb-2">Session Notes</h3>
+
+      <mat-form-field class="w-full">
+        <mat-label>Session Notes</mat-label>
+        <textarea
+          matInput
+          name="sessionNotes"
+          formControlName="sessionNotes"
+        ></textarea>
+      </mat-form-field>
+    </div>
+    <div class="">
+      <h3 class="mb-2">Termination</h3>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
+        <mat-form-field class="w-full">
+          <mat-label>Termination Plan</mat-label>
+          <input
+            matInput
+            name="terminationPlan"
+            formControlName="terminationPlan"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>Review of Progress</mat-label>
+          <input
+            matInput
+            name="reviewOfProgress"
+            formControlName="reviewOfProgress"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>Thank You NOTE</mat-label>
+          <input matInput name="thankYouNote" formControlName="thankYouNote" />
+        </mat-form-field>
+      </div>
+    </div>
+    <div>
+      <button
+        type="submit"
+        mat-raised-button
+        color="accent"
+        [disabled]="sessionForm.invalid"
+      >
+        Create Session
+      </button>
+    </div>
+  </form>
+</div>
+
+<app-modal
+  actionText="Got It"
+  (onAction)="closeModal()"
+  (onCancel)="closeModal()"
+  [isOpen]="modalState"
+>
+  <p>Please fill all the necessary details to proceed</p>
+</app-modal>

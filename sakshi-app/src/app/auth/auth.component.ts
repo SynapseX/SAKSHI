@@ -17,7 +17,6 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.signinSub = this.authSrv.currentUser$.subscribe((user) => {
-      console.log(user, this.router.url);
       if (user && this.router.url == '/auth') {
         this.router.navigate(['/']);
       }

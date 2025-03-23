@@ -6,17 +6,15 @@ import { NavComponent } from './components/nav/nav.component';
 import { AuthService } from './_services/auth.service';
 
 @Component({
-    selector: 'app-root',
-    standalone: true,
-    imports: [CommonModule, NavComponent, HomeComponent, RouterOutlet],
-    templateUrl: './app.component.html',
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, NavComponent, HomeComponent, RouterOutlet],
+  templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit {
-    title = 'sakshi.ai';
+  title = 'sakshi.ai';
 
-    constructor(private authSrv: AuthService) {}
+  constructor() {}
 
-    ngOnInit(): void {
-        this.authSrv.checkUserLoggedIn();
-    }
+  ngOnInit(): void {}
 }

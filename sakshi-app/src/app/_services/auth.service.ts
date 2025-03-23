@@ -11,18 +11,22 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { User } from '../_models/User';
 import { ConfigService } from './config.service';
+import { Router } from '@angular/router';
+import { LoaderService } from './loader.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  #app!: FirebaseApp;
-  #analytics!: Analytics;
+  private readonly USER_KEY = '__AUTH__';
 
-  private currentUserSource = new BehaviorSubject<User | null>(null);
+  private app!: FirebaseApp;
+  private analytics!: Analytics;
+
+  currentUserSource = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSource.asObservable();
 
-  constructor(private cfgSrv: ConfigService) {
+  constructor(private cfgSrv: ConfigService, private router: Router) {
     const firebaseConfig = {
       apiKey: cfgSrv.get('API_KEY'),
       authDomain: cfgSrv.get('AUTH_DOMAIN'),
@@ -32,32 +36,48 @@ export class AuthService {
       appId: cfgSrv.get('APP_ID'),
       measurementId: cfgSrv.get('MEASUREMENT_ID'),
     };
-    if (!this.#app) this.#app = initializeApp(firebaseConfig);
-    if (!this.#analytics) this.#analytics = getAnalytics(this.#app);
+    if (!this.app) this.app = initializeApp(firebaseConfig);
+    if (!this.analytics) this.analytics = getAnalytics(this.app);
   }
 
-  checkUserLoggedIn() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user.getIdToken().then((token) => {
-          const userObj: User = {
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            uid: user.uid,
-            accessToken: token,
-          };
-          this.currentUserSource.next(userObj);
-        });
-      } else {
-        this.currentUserSource.next(null);
+  setUser(user: User | null) {
+    if (user) {
+      const encodedUser = btoa(
+        JSON.stringify({
+          displayName: user.displayName,
+          email: user.email,
+          uid: user.uid,
+        })
+      ); // Base64 encode
+
+      localStorage.setItem(this.USER_KEY, encodedUser);
+
+      this.currentUserSource.next(user);
+    } else {
+      this.clearUser();
+    }
+  }
+
+  getUser(): User | null {
+    const encodedUser = localStorage.getItem(this.USER_KEY);
+    if (encodedUser) {
+      try {
+        return JSON.parse(atob(encodedUser));
+      } catch (error) {
+        console.error('Error decoding or parsing user:', error);
+        this.clearUser(); // Clear invalid data
+        return null;
       }
-    });
+    }
+    return null;
+  }
+
+  clearUser(): void {
+    localStorage.removeItem(this.USER_KEY);
   }
 
   googleSignIn() {
-    signInWithPopup(getAuth(this.#app), new GoogleAuthProvider())
+    signInWithPopup(getAuth(this.app), new GoogleAuthProvider())
       .then((result) => {
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential?.accessToken;
@@ -68,7 +88,7 @@ export class AuthService {
           uid: result.user.uid,
           accessToken: token,
         };
-        this.currentUserSource.next(user);
+        this.setUser(user);
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -81,10 +101,11 @@ export class AuthService {
   }
 
   googleSignOut() {
-    getAuth(this.#app)
+    getAuth(this.app)
       .signOut()
       .then(() => {
-        this.currentUserSource.next(null);
+        this.setUser(null);
+        this.router.navigate(['/auth']);
       })
       .catch((error) => {
         console.log('Error in signout', error);
