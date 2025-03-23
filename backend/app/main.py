@@ -71,29 +71,29 @@ def create_session(request: SessionCreateRequest):
 def get_session(session_id: str):
     session = session_manager.get_session(session_id)
     if session:
-        return session
+        return json.loads(json.dumps(session, default=str))
     raise HTTPException(status_code=404, detail="Session not found")
 
 
 #TODO: Implement the extend_session endpoint
 @app.put("/api/sessions/{session_id}/extend")
-def extend_session(session_id: str, additional_duration: str):
+def extend_session(session_id: str, additional_duration: int):
     session = session_manager.extend_session(session_id, additional_duration)
     if session:
-        return {"message": "Session extended", "session": session}
+        return {"message": "Session extended", "session": json.loads(json.dumps(session, default=str))}
     raise HTTPException(status_code=404, detail="Session not found or inactive")
 
 @app.delete("/api/sessions/{session_id}")
 def terminate_session(session_id: str):
     session = session_manager.terminate_session(session_id)
     if session:
-        return {"message": "Session terminated", "session": session}
+        return {"message": "Session terminated", "session": json.loads(json.dumps(session, default=str))}
     raise HTTPException(status_code=404, detail="Session not found")
 
 @app.get("/api/sessions/active")
 def list_active_sessions():
     active_sessions = session_manager.list_active_sessions()
-    return {"active_sessions": active_sessions}
+    return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
 
 @app.get("/api/sessions/active/{user_id}")
 def list_active_sessions_by_user(user_id: str):

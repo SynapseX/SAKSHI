@@ -1,6 +1,7 @@
 import json
 import uuid
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 
 from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.mongodb_service import db
@@ -136,7 +137,7 @@ class SessionManager:
 
     def create_session(self, request):
         session_id = str(uuid.uuid4())
-        created_at = datetime.utcnow()
+        created_at = datetime.datetime.now(datetime.UTC)
         expires_at = self._calculate_expiry(created_at, request.duration)
 
         # Future-proof session structure
@@ -155,23 +156,25 @@ class SessionManager:
             "thank_you_note": request.thank_you_note,
             "metadata": request.metadata or {}
         }
-        db['sessions'].insert_one(session_data)
 
         #Title Generator
-        title = get_title_for_session(session_data)
+        session_data["title"] = get_title_for_session(session_data)
+
+        # AND insert
+        db['sessions'].insert_one(session_data)
 
         #First Prompt generator
         first_prompt = get_first_prompt(session_data)
-
-        session_data["title"] = title
         session_data["first_prompt"] = first_prompt
+
         return session_data
 
-    def get_session(self, session_id: str):
+    @staticmethod
+    def get_session(session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
         return session
 
-    def extend_session(self, session_id: str, additional_duration: str):
+    def extend_session(self, session_id: str, additional_duration: int):
         session = db['sessions'].find_one({"session_id": session_id})
         if session and session["status"] == "active":
             # Extend expiry based on the current expiry time
@@ -181,7 +184,8 @@ class SessionManager:
             return session
         return None
 
-    def terminate_session(self, session_id: str):
+    @staticmethod
+    def terminate_session(session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
         if session:
             db['sessions'].update_one({"session_id": session_id}, {"$set": {"status": "terminated"}})
@@ -189,15 +193,18 @@ class SessionManager:
             return session
         return None
 
-    def list_active_sessions(self):
+    @staticmethod
+    def list_active_sessions():
         active_sessions = db['sessions'].find({"status": "active"})
         return list(active_sessions)
 
-    def list_active_sessions_by_user(self, user_id: str):
+    @staticmethod
+    def list_active_sessions_by_user(user_id: str):
         active_sessions = db['sessions'].find({"status": "active", "uid": user_id})
         return list(active_sessions)
 
-    def _calculate_expiry(self, start_time: datetime, duration: int):
+    @staticmethod
+    def _calculate_expiry(start_time: datetime, duration: int):
         try:
             value, unit = duration,'minutes'
         except Exception:
@@ -211,7 +218,8 @@ class SessionManager:
         else:
             raise ValueError("Unsupported duration format. Use 'minute(s)', 'hour(s)', 'day(s)', or 'year(s)'.")
 
-    def upsert_session(self, session_id: str, session_data: dict):
+    @staticmethod
+    def upsert_session(session_id: str, session_data: dict):
         """
         Upsert a session in the database. If the session does not exist, it will be created.
         If it exists, it will be updated with the provided session_data.

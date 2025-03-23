@@ -43,6 +43,7 @@ export class SessHomeComponent implements OnInit, OnDestroy {
     this.sessSub = this.sessSrv.listActiveSessions(uid).subscribe({
       next: (sessions: any) => {
         this.sessSrv.activeSessionsSource.next(sessions.active_sessions);
+        console.log(sessions.active_sessions);
       },
     });
 
