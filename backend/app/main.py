@@ -33,7 +33,7 @@ class PromptRequest(BaseModel):
     session_id: str
     previous_prompt: str
 
-@app.post("/create_profile")
+@app.post("/api/create_profile")
 async def create_profile(profile: UserProfile):
     profile.id = str(uuid.uuid4())
     logger.info(f"Creating profile for user: {profile.name}")
@@ -42,7 +42,7 @@ async def create_profile(profile: UserProfile):
     return {"message": "Profile created", "user": new_user}
 
 
-@app.post("/prompt")
+@app.post("/api/prompt")
 async def handle_prompt(request: PromptRequest):
     # Validate that the user exists
     logger.info(f"Processing prompt for user: {request.user_id}")
@@ -59,7 +59,7 @@ async def handle_prompt(request: PromptRequest):
     return result
 
 
-@app.post("/sessions")
+@app.post("/api/sessions")
 def create_session(request: SessionCreateRequest):
     try:
         session = session_manager.create_session(request)
@@ -67,7 +67,7 @@ def create_session(request: SessionCreateRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/sessions/{session_id}")
+@app.get("/api/sessions/{session_id}")
 def get_session(session_id: str):
     session = session_manager.get_session(session_id)
     if session:
@@ -76,31 +76,31 @@ def get_session(session_id: str):
 
 
 #TODO: Implement the extend_session endpoint
-@app.put("/sessions/{session_id}/extend")
+@app.put("/api/sessions/{session_id}/extend")
 def extend_session(session_id: str, additional_duration: str):
     session = session_manager.extend_session(session_id, additional_duration)
     if session:
         return {"message": "Session extended", "session": session}
     raise HTTPException(status_code=404, detail="Session not found or inactive")
 
-@app.delete("/sessions/{session_id}")
+@app.delete("/api/sessions/{session_id}")
 def terminate_session(session_id: str):
     session = session_manager.terminate_session(session_id)
     if session:
         return {"message": "Session terminated", "session": session}
     raise HTTPException(status_code=404, detail="Session not found")
 
-@app.get("/sessions/active")
+@app.get("/api/sessions/active")
 def list_active_sessions():
     active_sessions = session_manager.list_active_sessions()
     return {"active_sessions": active_sessions}
 
-@app.get("/sessions/active/{user_id}")
+@app.get("/api/sessions/active/{user_id}")
 def list_active_sessions_by_user(user_id: str):
     active_sessions = session_manager.list_active_sessions_by_user(user_id)
     return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
 
-@app.get('/health')
+@app.get('/api/health')
 async def health():
     return {"status": "ok"}
 if __name__ == "__main__":
