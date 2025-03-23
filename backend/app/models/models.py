@@ -27,4 +27,10 @@ class SessionCreateRequest(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     uid: str
     duration: int  # e.g., "1 hour", "1 day", "1 year"
+    treatment_goals: str
+    client_expectations: str
+    session_notes: str
+    termination_plan: str
+    review_of_progress: str
+    thank_you_note: str
     metadata: dict = {}  # Optional additional info

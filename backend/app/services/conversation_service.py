@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 import logging
 
-from backend.app.services.llm_connector import generate_response, create_prompt
+from backend.app.services.llm_connector import generate_json_response, create_prompt
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
 from backend.app.services.phase_shifter import phase_shifter
@@ -60,7 +60,7 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     if phase_decision == "advance":
         next_phase = get_next_phase(current_phase)
         advance_questions = generate_advance_questions(previous_context, prompt, current_phase, user_id)
-        feedback_obj = generate_response(create_prompt(previous_context + " " + prompt, prompt))
+        feedback_obj = generate_json_response(create_prompt(previous_context + " " + prompt, prompt))
         feedback = feedback_obj.get("final_response", "No feedback generated")
 
         # Update current_phase to next_phase in the log
@@ -231,7 +231,7 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         ```
        """
     )
-    response = generate_response(full_prompt)
+    response = generate_json_response(full_prompt)
     advance_question = response.get("advance_question", "")
     return advance_question
 
@@ -290,7 +290,7 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
             ```
         """
     )
-    response = generate_response(full_prompt)
+    response = generate_json_response(full_prompt)
     follow_up_question = response.get("follow_up_question", "")
     return follow_up_question
 

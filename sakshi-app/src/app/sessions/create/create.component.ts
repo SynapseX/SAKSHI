@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
@@ -40,7 +40,8 @@ export class CreateComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private tstSrv: ToastrService,
-    private sessSrv: SessionService
+    private sessSrv: SessionService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -72,7 +73,7 @@ export class CreateComponent implements OnInit {
         this.tstSrv.success(res.message);
         localStorage.setItem('session_id', res.session.session_id);
         let base_location = window.location.origin;
-        window.location.href = base_location + '/chat/';
+        this.router.navigate(['/chat']);
       },
     });
   }

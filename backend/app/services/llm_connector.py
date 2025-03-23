@@ -20,7 +20,7 @@ def create_prompt(previous_context: str, prompt: str) -> str:
         "Format your answer as a JSON object with two keys: 'chain_of_thought' and 'final_response'."
     )
 
-def generate_response(full_prompt: str) -> dict:
+def generate_json_response(full_prompt: str) -> dict:
     """
     Generates an LLM response using Google Gemini with chain-of-thought reasoning.
     Returns a JSON object with keys: 'chain_of_thought' and 'final_response'.
@@ -35,3 +35,10 @@ def generate_response(full_prompt: str) -> dict:
             "chain_of_thought": "",
             "final_response": f"Error parsing response: {str(e)}. Raw output: {value}"
         }
+
+def generate_response(prompt: str) -> str:
+    """
+    Generates an LLM response using Google Gemini.
+    """
+    response = client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
+    return response.text

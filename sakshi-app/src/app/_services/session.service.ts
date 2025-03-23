@@ -14,6 +14,8 @@ const apiUrl = environment.apiUrl;
 export class SessionService {
   activeSessionsSource = new BehaviorSubject<Object[]>([]);
   activeSessions$ = this.activeSessionsSource.asObservable();
+  private firstPromptSource = new BehaviorSubject<String>('NA');
+  firstPrompt$ = this.firstPromptSource.asObservable();
 
   constructor(private http: HttpClient, private authSrv: AuthService) {}
 
@@ -22,12 +24,19 @@ export class SessionService {
       .post(`${apiUrl}/sessions`, {
         uid: this.authSrv.getUser()?.uid,
         duration: session.sessionDuration,
-        metadata: { ...session },
+        treatment_goals: session.treatmentGoals,
+        client_expectations: session.clientExpectations,
+        session_notes: session.sessionNotes,
+        termination_plan: session.terminationPlan,
+        review_of_progress: session.reviewOfProgress,
+        thank_you_note: session.thankYouNote,
       })
       .pipe(
         map((res: any) => {
+          console.log(res)
           const allSessions = [...this.activeSessionsSource.value, res.session];
           this.activeSessionsSource.next(allSessions);
+          this.firstPromptSource.next(res.session.first_prompt.first_prompt)
           return res;
         })
       );
