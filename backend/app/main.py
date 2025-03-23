@@ -98,7 +98,7 @@ def list_active_sessions():
 @app.get("/sessions/active/{user_id}")
 def list_active_sessions_by_user(user_id: str):
     active_sessions = session_manager.list_active_sessions_by_user(user_id)
-    return {"active_sessions": active_sessions}
+    return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
 
 @app.get('/health')
 async def health():
