@@ -3,10 +3,10 @@ import { Injectable } from '@angular/core';
 
 import { BehaviorSubject, map } from 'rxjs';
 import { Session } from '../_models/Session';
-import {API_BASE_URL}  from  "./api-config-constants";
+import { environment } from '../../environments/environment.development';
+import { AuthService } from './auth.service';
 
-const apiUrl = API_BASE_URL;
-
+const apiUrl = environment.apiUrl;
 
 @Injectable({
   providedIn: 'root',
@@ -17,12 +17,12 @@ export class SessionService {
   private firstPromptSource = new BehaviorSubject<String>('NA');
   firstPrompt$ = this.firstPromptSource.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authSrv: AuthService) {}
 
   createSession(session: Session) {
     return this.http
       .post(`${apiUrl}/sessions`, {
-        uid: 'assssasasasasasa',
+        uid: this.authSrv.getUser()?.uid,
         duration: session.sessionDuration,
         treatment_goals: session.treatmentGoals,
         client_expectations: session.clientExpectations,
