@@ -30,11 +30,11 @@ export class NavComponent implements OnInit, OnDestroy {
     this.authSrv.googleSignOut();
   }
 
-  toggleNav() {
-    this.isNavOpen = !this.isNavOpen;
+  toggleNav(v?: boolean) {
+    this.isNavOpen = v ?? !this.isNavOpen;
   }
-  toggleProfile() {
-    this.isProfileOpen = !this.isProfileOpen;
+  toggleProfile(v?: boolean) {
+    this.isProfileOpen = v ?? !this.isProfileOpen;
   }
 
   ngOnDestroy(): void {

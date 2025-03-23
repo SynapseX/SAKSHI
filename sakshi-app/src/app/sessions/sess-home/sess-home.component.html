@@ -1,27 +1,23 @@
-<div class="bg-white mr-2">
-  <div
-    class="border-2 border-gray-200 shadow rounded-lg w-full min-h-96 h-full"
-  >
-    <h2 class="font-semibold text-center p-2 text-lg">Active Sessions</h2>
-    @if (isLoading) {
-    <p class="text-sm my-2 text-center">Loading ...</p>
-    } @else {
-    <!--  -->
-    @if (activeSessions && activeSessions.length > 0) {
-    <div class="grid grid-cols-1">
-      @for (sess of activeSessions; track $index) {
-      <app-sess [session]="sess"></app-sess>
-      }
-    </div>
-    }@else {
-    <app-empty-box msg="No Sessions as of Now"></app-empty-box>
-    <div class="flex justify-center">
-      <button mat-raised-button [routerLink]="['create']">
-        Create Session
-      </button>
-    </div>
-    }
-    <!--  -->
+<div
+  class="bg-white rounded mt-2 md:mt-0 p-8 shadow max-w-4xl mx-2 md:mx-auto min-h-96 h-full"
+>
+  <h2 class="font-semibold text-center p-2 text-lg">Active Sessions</h2>
+  @if (isLoading) {
+  <p class="text-sm my-2 text-center">Loading ...</p>
+  } @else {
+  <!--  -->
+  @if (activeSessions && activeSessions.length > 0) {
+  <div class="grid grid-cols-1">
+    @for (sess of activeSessions; track $index) {
+    <app-sess [session]="sess"></app-sess>
     }
   </div>
+  }@else {
+  <app-empty-box msg="No Sessions as of Now"></app-empty-box>
+  <div class="flex justify-center">
+    <button mat-raised-button [routerLink]="['create']">Create Session</button>
+  </div>
+  }
+  <!--  -->
+  }
 </div>

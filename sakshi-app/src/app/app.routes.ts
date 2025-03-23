@@ -5,16 +5,23 @@ import { AuthComponent } from './auth/auth.component';
 import { MeetComponent } from './meet/meet.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { ConversationComponent } from './conversation/conversation.component';
+import { SessHomeComponent } from './sessions/sess-home/sess-home.component';
+import { CreateComponent } from './sessions/create/create.component';
 
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
 
 import { authGuard } from './_guards/auth.guard';
-import { SessHomeComponent } from './sessions/sess-home/sess-home.component';
-import { CreateComponent } from './sessions/create/create.component';
+import { optAuthGuard } from './_guards/opt_auth.guard';
+import { ProfileComponent } from './profile/profile.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent, title: 'SAKSHI.AI' },
+  {
+    path: '',
+    component: HomeComponent,
+    title: 'SAKSHI.AI',
+    canActivate: [optAuthGuard],
+  },
   {
     path: 'auth',
     component: AuthComponent,
@@ -25,6 +32,11 @@ export const routes: Routes = [
     runGuardsAndResolvers: 'always',
     canActivate: [authGuard],
     children: [
+      {
+        path: 'profile',
+        component: ProfileComponent,
+        title: 'Your Profile | SAKSHI.AI',
+      },
       { path: 'chat', component: ConversationComponent },
       {
         path: 'sessions',
@@ -42,7 +54,11 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'meet', component: MeetComponent, title: 'Session | SAKSHI.AI' },
+      {
+        path: 'meet',
+        component: MeetComponent,
+        title: 'Session | SAKSHI.AI',
+      },
     ],
   },
   {

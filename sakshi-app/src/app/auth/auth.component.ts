@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AuthService } from '../_services/auth.service';
 import { Subscription } from 'rxjs';
-import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 
 @Component({

@@ -7,6 +7,7 @@ import {
   signInWithPopup,
   setPersistence,
   onAuthStateChanged,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { BehaviorSubject } from 'rxjs';
 import { User } from '../_models/User';
@@ -51,11 +52,10 @@ export class AuthService {
       ); // Base64 encode
 
       localStorage.setItem(this.USER_KEY, encodedUser);
-
-      this.currentUserSource.next(user);
     } else {
       this.clearUser();
     }
+    this.currentUserSource.next(user);
   }
 
   getUser(): User | null {
@@ -77,18 +77,21 @@ export class AuthService {
   }
 
   googleSignIn() {
-    signInWithPopup(getAuth(this.app), new GoogleAuthProvider())
-      .then((result) => {
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-        const user: User = {
-          displayName: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-          uid: result.user.uid,
-          accessToken: token,
-        };
-        this.setUser(user);
+    const auth = getAuth(this.app);
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        signInWithPopup(auth, new GoogleAuthProvider()).then((result) => {
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          const token = credential?.accessToken;
+          const user: User = {
+            displayName: result.user.displayName,
+            email: result.user.email,
+            photoURL: result.user.photoURL,
+            uid: result.user.uid,
+            accessToken: token,
+          };
+          this.setUser(user);
+        });
       })
       .catch((error) => {
         const errorCode = error.code;
