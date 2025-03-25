@@ -6,14 +6,12 @@ import {
   getAuth,
   signInWithPopup,
   setPersistence,
-  onAuthStateChanged,
   browserLocalPersistence,
 } from 'firebase/auth';
 import { BehaviorSubject } from 'rxjs';
 import { User } from '../_models/User';
 import { ConfigService } from './config.service';
 import { Router } from '@angular/router';
-import { LoaderService } from './loader.service';
 
 @Injectable({
   providedIn: 'root',

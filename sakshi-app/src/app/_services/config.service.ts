@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
 export class ConfigService {
-    private config = (window as any).__env || {};
+  private config = (window as any).__env || {};
 
-    getAll() {
-        return this.config;
-    }
+  getAll() {
+    return this.config;
+  }
 
-    get(key: string): any {
-        return this.config[key];
-    }
+  get(key: string): any {
+    return this.config[key];
+  }
 }

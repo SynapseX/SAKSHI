@@ -22,6 +22,8 @@ RUN yarn run build
 # Stage 2: Serve the built application with nginx
 FROM nginx:alpine
 
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy the built application from the build stage
 COPY --from=build /app/dist/sakshi-app/browser /usr/share/nginx/html
 
