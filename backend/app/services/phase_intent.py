@@ -52,7 +52,7 @@ phase_intent = {
             "Ensure the client's self-assessment aligns with observable patterns."
         ),
         "weightage": 10,
-        "approach": "questions",
+        "approach": "questions | statements",
         "examples": [
             "Can you provide an example of when you felt this way?",
             "How did you handle that specific situation?"
@@ -76,7 +76,7 @@ phase_intent = {
             "Provide ongoing guidance, feedback, and adjustments as needed."
         ),
         "weightage": 15,
-        "approach": "both",
+        "approach": "Statements",
         "examples": [
             "How have the strategies we've discussed been working for you?",
             "It's normal to adjust strategies as we learn what works best."
@@ -100,7 +100,7 @@ phase_intent = {
             "Offer clear recommendations and relapse prevention strategies for a smooth transition out of active therapy."
         ),
         "weightage": 3,
-        "approach": "statements",
+        "approach": "Statements",
         "examples": [
             "You've made remarkable progress, and it's been a privilege to work with you.",
             "Remember, the skills you've developed will support you moving forward."

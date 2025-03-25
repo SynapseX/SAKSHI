@@ -206,6 +206,7 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         - **Previous Context:** {previous_context}
         - **User's Prompt:** '{prompt}'
         
+        **NOTE** : SHOULD FOLLOW THE Phase Intent Approach it can Either be Questions, Statements, Both. 
         
         Chain-of-Thought Reasoning:
         1. **Context Analysis:** Examine the previous conversation and the client's most recent prompt to identify key emotional cues and any gaps or resistance in their narrative.
