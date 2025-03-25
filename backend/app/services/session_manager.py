@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.mongodb_service import db
+from backend.app.services.phase_intent import phase_intent
 
 
 def get_title_for_session(session_data):
@@ -147,6 +148,7 @@ class SessionManager:
             "duration": request.duration,
             "created_at": created_at,
             "expires_at": expires_at,
+            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent),
             "status": "active",
             "treatment_goals": request.treatment_goals,
             "client_expectations": request.client_expectations,
@@ -225,3 +227,29 @@ class SessionManager:
         If it exists, it will be updated with the provided session_data.
         """
         db['sessions'].update_one({"session_id": session_id}, {"$set": session_data}, upsert=True)
+
+    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent: dict):
+        """
+        Calculate the end time for each phase based on the session duration and phase weightage.
+
+        Args:
+            start_time (datetime): The start time of the session.
+            duration (int): The total duration of the session in minutes.
+            phase_intent (dict): A dictionary containing phase names and their respective weightages.
+
+        Returns:
+            dict: A dictionary with phase names as keys and their calculated end times as values.
+        """
+        total_weight = sum(
+            phase['weightage'] for phase in phase_intent.values() if isinstance(phase, dict) and 'weightage' in phase)
+        phase_end_times = {}
+        current_time = start_time
+
+        for phase, details in phase_intent.items():
+            if isinstance(details, dict) and 'weightage' in details:
+                phase_duration = (details['weightage'] / total_weight) * duration
+                phase_end_time = current_time + timedelta(minutes=phase_duration)
+                phase_end_times[phase] = phase_end_time
+                current_time = phase_end_time
+
+        return phase_end_times

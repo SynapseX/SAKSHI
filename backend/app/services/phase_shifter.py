@@ -58,6 +58,7 @@ def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phas
         
         - **Session Start:** {session['created_at']}  
         - **Session End:** {session['expires_at']}  
+        - **Phase End Timing Calculated**: {session['phase_end_times']}
         - **Current Time:** {datetime.utcnow()}  
         - **Phases & Weightage:** {phase_intent}  
         - **Current Phase:** {current_phase}  
