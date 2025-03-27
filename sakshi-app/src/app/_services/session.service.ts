@@ -3,11 +3,8 @@ import { Injectable } from '@angular/core';
 
 import { BehaviorSubject, map } from 'rxjs';
 import { Session } from '../_models/Session';
-import { environment } from '../../environments/environment.development';
 import { AuthService } from './auth.service';
-import { ToastrService } from 'ngx-toastr';
-
-const apiUrl = environment.apiUrl;
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +16,13 @@ export class SessionService {
   private firstPromptSource = new BehaviorSubject<String>('');
   firstPrompt$ = this.firstPromptSource.asObservable();
 
-  constructor(private http: HttpClient, private authSrv: AuthService) {}
+  private apiUrl = this.cfgSrv.get('API_BASE_URL');
+
+  constructor(
+    private http: HttpClient,
+    private authSrv: AuthService,
+    private cfgSrv: ConfigService
+  ) {}
 
   createSession(session: Session) {
     const formData = {
@@ -33,7 +36,7 @@ export class SessionService {
       thank_you_note: session.thankYouNote,
     };
 
-    return this.http.post(`${apiUrl}/sessions`, formData).pipe(
+    return this.http.post(`${this.apiUrl}/sessions`, formData).pipe(
       map((res: any) => {
         const allSessions = [...this.activeSessionsSource.value, res.session];
         this.activeSessionsSource.next(allSessions);
@@ -44,11 +47,11 @@ export class SessionService {
   }
 
   getSession(sessionId: string) {
-    return this.http.get(`${apiUrl}/sessions/${sessionId}`);
+    return this.http.get(`${this.apiUrl}/sessions/${sessionId}`);
   }
 
   terminateSession(sessionId: string) {
-    return this.http.delete(`${apiUrl}/sessions/${sessionId}`).pipe(
+    return this.http.delete(`${this.apiUrl}/sessions/${sessionId}`).pipe(
       map((res: any) => {
         const activeSessions = this.activeSessionsSource.value;
         this.activeSessionsSource.next(
@@ -61,12 +64,12 @@ export class SessionService {
 
   extendSession(sessionId: string, duration: number) {
     return this.http.put(
-      `${apiUrl}/sessions/${sessionId}?additional_duration=${duration}`,
+      `${this.apiUrl}/sessions/${sessionId}?additional_duration=${duration}`,
       {}
     );
   }
 
   listActiveSessions(uid: string) {
-    return this.http.get(`${apiUrl}/sessions/active/${uid}`);
+    return this.http.get(`${this.apiUrl}/sessions/active/${uid}`);
   }
 }

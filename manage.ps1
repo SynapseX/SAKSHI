@@ -12,7 +12,7 @@
 
 Param(
     [Parameter(Mandatory=$false)]
-    [ValidateSet("env:start", "env:stop", "app:start", "api:start")]
+    [ValidateSet("env:start", "env:stop", "app:start","app:start:prod", "api:start")]
     [string]$action = "api:start",
     [string]$args
 )
@@ -37,6 +37,10 @@ switch($action){
     "app:start"{
         Set-Location -Path "$basePath\sakshi-app"
         yarn start
+    }
+    "app:start:prod"{
+        Set-Location -Path "$basePath\sakshi-app"
+        yarn start:prod
     } 
     "api:start" {
         Set-Location -Path "$basePath\backend\app"
