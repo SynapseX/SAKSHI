@@ -38,7 +38,7 @@
   },
   "scripts": {
     "ng": "ng",
-    "start": "node set-env.js && ng serve",
+    "start": "node set-env.js && ng serve --host 0.0.0.0",
     "start:prod": "node set-env.js prod && ng serve --configuration production",
     "build": "node set-env.js prod && ng build",
     "watch": "node set-env.js && ng build --watch --configuration development",

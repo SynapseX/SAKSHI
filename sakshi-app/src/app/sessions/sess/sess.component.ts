@@ -6,25 +6,53 @@ import { DateAsAgoPipe } from '../../_utils/date-as-ago.pipe';
 import { SessionService } from '../../_services/session.service';
 
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { ModalComponent } from '../../components/modal/modal.component';
 
 @Component({
   selector: 'app-sess',
   standalone: true,
-  imports: [DateAsAgoPipe, CommonModule, MatButtonModule],
+  imports: [
+    DateAsAgoPipe,
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    ModalComponent,
+  ],
   templateUrl: './sess.component.html',
-  styleUrl: './sess.component.scss',
 })
 export class SessComponent {
   @Input() session: any;
 
+  deleteModalData = {
+    open: false,
+    sessionId: '',
+    sessionTitle: '',
+  };
+
   constructor(private sessSrv: SessionService, private tstSrv: ToastrService) {}
 
-  deleteSession(session_id: string, session_title: string = '') {
-    if (confirm('Are you sure you want to delete this session?')) {
-      this.sessSrv.terminateSession(session_id).subscribe({
+  initiateDeleteSession(session_id: string, session_title: string = '') {
+    this.deleteModalData.open = true;
+    this.deleteModalData.sessionId = session_id;
+    this.deleteModalData.sessionTitle = session_title;
+  }
+
+  cancelDeleteSession() {
+    this.deleteModalData.open = false;
+    this.deleteModalData.sessionId = '';
+    this.deleteModalData.sessionTitle = '';
+  }
+
+  deleteSession() {
+    if (this.deleteModalData.sessionId) {
+      this.sessSrv.terminateSession(this.deleteModalData.sessionId).subscribe({
         next: (res) => {
           console.log(res);
-          this.tstSrv.success(res.message, session_title);
+          this.tstSrv.success(res.message, this.deleteModalData.sessionTitle);
+        },
+        complete: () => {
+          this.cancelDeleteSession();
         },
       });
     }

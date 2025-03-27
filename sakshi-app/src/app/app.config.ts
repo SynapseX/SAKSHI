@@ -13,17 +13,36 @@ import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
 } from '@angular/material/form-field';
 
+import {
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MatTooltipDefaultOptions,
+} from '@angular/material/tooltip';
+
 import { errorInterceptor } from './_interceptors/error.interceptor';
 import { jwtInterceptor } from './_interceptors/jwt.interceptor';
 import { loadingInterceptor } from './_interceptors/loading.interceptor';
 
 import { routes } from './app.routes';
+import {
+  MAT_ICON_DEFAULT_OPTIONS,
+  MatIconDefaultOptions,
+} from '@angular/material/icon';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline', // Or 'fill', 'standard', 'legacy'
   floatLabel: 'auto', // Or 'always', 'never'
   hideRequiredMarker: false, // Or true
   // Add other options as needed
+};
+
+const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 100,
+  hideDelay: 100,
+  touchendHideDelay: 100,
+};
+
+const iconOptions: MatIconDefaultOptions = {
+  fontSet: 'material-symbols-rounded',
 };
 
 export const appConfig: ApplicationConfig = {
@@ -40,5 +59,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAnimationsAsync(),
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: appearance },
+    { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: myCustomTooltipDefaults },
+    { provide: MAT_ICON_DEFAULT_OPTIONS, useValue: iconOptions },
   ],
 };

@@ -19,7 +19,16 @@
       </mat-select>
     </mat-form-field>
     <div class="">
-      <h3 class="mb-2">Goals and Expectations</h3>
+      <h3 class="mb-2 flex items-center space-x-1">
+        <span>Goals and Expectations</span>
+        <span
+          class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
+          matTooltip="Goals and Expectations"
+          matTooltipPosition="right"
+        >
+          info
+        </span>
+      </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
         <mat-form-field class="w-full">
           <mat-label>Treatment and Goals</mat-label>
@@ -39,18 +48,6 @@
           />
         </mat-form-field>
       </div>
-    </div>
-    <div class="">
-      <h3 class="mb-2">Session Notes</h3>
-
-      <mat-form-field class="w-full">
-        <mat-label>Session Notes</mat-label>
-        <textarea
-          matInput
-          name="sessionNotes"
-          formControlName="sessionNotes"
-        ></textarea>
-      </mat-form-field>
     </div>
     <div class="">
       <h3 class="mb-2">Termination</h3>
@@ -80,15 +77,43 @@
         </mat-form-field>
       </div>
     </div>
+    <div class="">
+      <h3 class="mb-2 flex items-center space-x-1">
+        <span>Session Notes</span>
+        <span
+          class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
+          matTooltip="Session Notes"
+          matTooltipPosition="above"
+        >
+          info
+        </span>
+      </h3>
+
+      <mat-form-field class="w-full">
+        <mat-label>Session Notes</mat-label>
+        <textarea
+          matInput
+          name="sessionNotes"
+          formControlName="sessionNotes"
+        ></textarea>
+      </mat-form-field>
+    </div>
     <div>
+      @if (isLoading) {
+      <button type="button" mat-flat-button>
+        <mat-icon class="animate-spin">progress_activity</mat-icon>
+        <span class="animate-pulse">Creating Session ...</span>
+      </button>
+      }@else {
       <button
         type="submit"
         mat-raised-button
         color="accent"
         [disabled]="sessionForm.invalid"
       >
-        Create Session
+        <span> Create Session </span>
       </button>
+      }
     </div>
   </form>
 </div>
