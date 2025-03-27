@@ -220,21 +220,21 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         
         Response Format:
         Please provide your final answer in JSON format with the following keys:
-        - "advance_question": (The advance question/statement you generated)
+        - "advance_statement": (The advance question/statement based on the Phase Intent Approach you generated) Strictly its a String. 
         - "intention": (A brief explanation of why this question/statement is appropriate and how it bridges the client's current state with the next phase)
         
         Example Output:
         ```json
         {{
-          "advance_question": "Can you describe a recent experience where you sensed a shift in your emotions, and what do you think contributed to that change?",
+          "advance_statement": "Can you describe a recent experience where you sensed a shift in your emotions, and what do you think contributed to that change?",
           "intention": "This question invites deeper reflection on the client's recent emotional shifts, clarifies any ambiguity, and helps transition them toward the next phase by addressing gaps in understanding.",
         }}
         ```
        """
     )
     response = generate_json_response(full_prompt)
-    advance_question = response.get("advance_question", "")
-    return advance_question
+    advance_statement = response.get("advance_statement", "")
+    return advance_statement
 
 
 def generate_follow_up_questions(previous_context: str, prompt: str, current_phase: str, user_id: str):
@@ -279,21 +279,21 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
             2. Under intention, provide a brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase. 
             **Response Format:**
             Please provide your final answer in JSON format with the following keys:
-            - `"follow_up_question"`: The follow-up question/statement you have generated.
+            - `"follow_up_question"`: The follow-up question/statement based on Approach. Strictly its a String.
             - `"intention"`: A brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase.
             
             **Example Output:**
             ```json
             {{
-              "follow_up_question": "Can you tell me more about what you experienced when you mentioned feeling uncertain about your emotions, and what you think might be causing that uncertainty?",
+              "follow_up_statement": "Can you tell me more about what you experienced when you mentioned feeling uncertain about your emotions, and what you think might be causing that uncertainty?",
               "intention": "This question is designed to explore potential ambivalence in the client's response, encouraging deeper reflection on their emotional state and underlying causes, which is essential for progressing in the current phase.",
             }}
             ```
         """
     )
     response = generate_json_response(full_prompt)
-    follow_up_question = response.get("follow_up_question", "")
-    return follow_up_question
+    follow_up_statement = response.get("follow_up_statement", "")
+    return follow_up_statement
 
 
 def tokenize_text(text: str):
