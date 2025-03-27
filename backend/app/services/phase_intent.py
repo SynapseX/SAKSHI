@@ -60,11 +60,12 @@ phase_intent = {
     },
     "Solution Retrieval Phase": {
         "intent": (
+            "Suggest potential solutions, coping strategies, or interventions based on the client's needs and preferences. "
             "Introduce and discuss practical strategies and coping mechanisms tailored to the client's needs. "
             "Collaboratively identify actionable steps and interventions."
         ),
         "weightage": 15,
-        "approach": "statements",
+        "approach": "Statements",
         "examples": [
             "Together, we can develop strategies that suit your unique situation.",
             "Implementing tailored coping mechanisms can enhance your well-being."

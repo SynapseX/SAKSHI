@@ -60,11 +60,9 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     if phase_decision == "advance":
         next_phase = get_next_phase(current_phase)
         advance_questions = generate_advance_questions(previous_context, prompt, current_phase, user_id)
-        feedback_obj = generate_json_response(create_prompt(previous_context + " " + prompt, prompt))
-        feedback = feedback_obj.get("final_response", "No feedback generated")
 
         # Update current_phase to next_phase in the log
-        log_session(session_id, user_id, next_phase, prompt, feedback, user_situation, phase_decision)
+        log_session(session_id, user_id, next_phase, prompt, advance_questions, user_situation, phase_decision)
 
         return {
             "follow_up_question": advance_questions,
@@ -217,6 +215,14 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         
         Task:
         Generate one advance question/statement based on the above Current Phase examples, intent, goal.
+                    
+        **Methodology:**
+        1. Under follow-up-question, provide the value strictly as per the format specified in the Approach. 
+            a. If the Approach says Questions then provide a question.
+            b. If the Approach says Statements then provide a statement.
+            c. If the Approach says Both Then provide Both a question and a statement.
+            d. If the Approach says question and still there is a question from user in user prompt then you need address the question first by providing an answer and following up with a question.
+        2. Under intention, provide a brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase. 
         
         Response Format:
         Please provide your final answer in JSON format with the following keys:
@@ -263,7 +269,7 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
             - **Phase Intent:** {phase_intent.get(current_phase, 'Unknown Phase').get('intent', 'Unknown Intent')}
             - **Approach**: {phase_intent.get(current_phase, {}).get("approach", "questions")}
             - **User Situation:** {user_situation_text}  
-              *(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
+            - **(Example: "The user has described their emotional state as neutral, is currently dealing with none reported, and has no prior history available.")*
             - **Previous Context:** {previous_context}
             - **User's Prompt:** '{prompt}'
             

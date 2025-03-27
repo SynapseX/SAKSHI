@@ -6,7 +6,7 @@ from google import genai
 # Load API Key from environment variable
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-def create_prompt(previous_context: str, prompt: str) -> str:
+def create_prompt(previous_context: str, user_response: str, therapist_response: str) -> str:
     """
     Creates a full prompt for the LLM based on the previous context and the new prompt.
     """
@@ -16,7 +16,8 @@ def create_prompt(previous_context: str, prompt: str) -> str:
         "and then produce actionable, concise feedback (e.g., mindfulness exercises, journaling recommendations).\n\n"
         "Instructions: Think step-by-step about the user's context. First, list your reasoning, then produce a final, concise, actionable response.\n\n"
         f"Context from Previous Sessions:\n{previous_context}\n\n"
-        f"User's New Prompt:\n{prompt}\n\n"
+        f"User's New Prompt:\n{user_response}\n\n"
+        f"Therapist Response:\n{therapist_response}\n\n"
         "Format your answer as a JSON object with two keys: 'chain_of_thought' and 'final_response'."
     )
 
