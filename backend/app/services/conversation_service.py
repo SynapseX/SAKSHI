@@ -70,7 +70,7 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
             "user_situation": user_situation
         }
     elif phase_decision == "more_questions":
-        additional_questions = generate_follow_up_questions(previous_context, prompt, current_phase, user_id)
+        additional_questions = generate_follow_up_questions(previous_context,  prompt, current_phase, user_id)
         log_session(session_id, user_id, current_phase, prompt, additional_questions, user_situation, phase_decision)
         return {
             "follow_up_question": additional_questions,
@@ -285,7 +285,7 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
             2. Under intention, provide a brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase. 
             **Response Format:**
             Please provide your final answer in JSON format with the following keys:
-            - `"follow_up_question"`: The follow-up question/statement based on Approach. Strictly its a String.
+            - `"follow_up_statement"`: The follow-up question/statement based on Approach. Strictly its a String and cant be empty.
             - `"intention"`: A brief explanation of why this question/statement is appropriate, how it addresses potential resistance or ambiguity, and how it aligns with the current phase.
             
             **Example Output:**
