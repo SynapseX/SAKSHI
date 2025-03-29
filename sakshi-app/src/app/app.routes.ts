@@ -25,6 +25,7 @@ export const routes: Routes = [
   {
     path: 'auth',
     component: AuthComponent,
+    canActivate: [optAuthGuard],
     title: 'Signin to get a FREE Session on SAKSHI.AI',
   },
   {
@@ -50,7 +51,7 @@ export const routes: Routes = [
           {
             path: 'create',
             component: CreateComponent,
-            title: 'Start a Session | SAKSHI.AI',
+            title: 'Create a Session | SAKSHI.AI',
           },
         ],
       },

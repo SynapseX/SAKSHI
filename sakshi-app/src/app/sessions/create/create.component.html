@@ -94,7 +94,8 @@
         <textarea
           matInput
           name="sessionNotes"
-          formControlName="sessionNotes"
+          readonly
+          [value]="sessionForm.controls['sessionNotes'].value"
         ></textarea>
       </mat-form-field>
     </div>
