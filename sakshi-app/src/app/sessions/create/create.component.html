@@ -94,8 +94,9 @@
         <textarea
           matInput
           name="sessionNotes"
-          readonly
+          disabled
           [value]="sessionForm.controls['sessionNotes'].value"
+          style="resize: none"
         ></textarea>
       </mat-form-field>
     </div>

@@ -51,15 +51,17 @@ export class SessionService {
   }
 
   terminateSession(sessionId: string) {
-    return this.http.delete(`${this.apiUrl}/sessions/${sessionId}`).pipe(
-      map((res: any) => {
-        const activeSessions = this.activeSessionsSource.value;
-        this.activeSessionsSource.next(
-          activeSessions.filter((s: any) => s.session_id !== sessionId)
-        );
-        return res;
-      })
-    );
+    return this.http
+      .post(`${this.apiUrl}/completed_session/${sessionId}`, {})
+      .pipe(
+        map((res: any) => {
+          const activeSessions = this.activeSessionsSource.value;
+          this.activeSessionsSource.next(
+            activeSessions.filter((s: any) => s.session_id !== sessionId)
+          );
+          return res;
+        })
+      );
   }
 
   extendSession(sessionId: string, duration: number) {
