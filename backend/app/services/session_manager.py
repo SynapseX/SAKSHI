@@ -3,6 +3,7 @@ import uuid
 import datetime
 from datetime import timedelta
 
+from backend.app.models.models import SessionCreateRequest
 from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
@@ -253,3 +254,108 @@ class SessionManager:
                 current_time = phase_end_time
 
         return phase_end_times
+
+        # Pause session
+    def pause_session(self, session_id: str):
+        session = db['sessions'].find_one({"session_id": session_id})
+
+        if not session:
+            return {"error": "Session not found."}
+
+        if session["status"] != "active":
+            return {"error": "Only active sessions can be paused."}
+
+        # Calculate remaining duration before pausing
+        current_time = datetime.now(datetime.UTC)
+        remaining_duration = (session["expires_at"] - current_time).total_seconds() // 60  # Convert to minutes
+
+        # Update session status
+        db['sessions'].update_one(
+            {"session_id": session_id},
+            {"$set": {"status": "paused", "paused_at": current_time, "remaining_duration": remaining_duration}}
+        )
+
+        return {"message": "Session paused successfully.", "session_id": session_id}
+
+    # Resume session
+    def resume_session(self, session_id: str):
+        session = db['sessions'].find_one({"session_id": session_id})
+
+        if not session:
+            return {"error": "Session not found."}
+
+        if session["status"] != "paused":
+            return {"error": "Only paused sessions can be resumed."}
+
+        # Calculate new expiry time
+        current_time = datetime.now(datetime.UTC)
+        new_expires_at = current_time + timedelta(minutes=session["remaining_duration"])
+
+        # Update session status
+        db['sessions'].update_one(
+            {"session_id": session_id},
+            {"$set": {"status": "active", "expires_at": new_expires_at},
+             "$unset": {"paused_at": "", "remaining_duration": ""}}
+        )
+
+        return {"message": "Session resumed successfully.", "session_id": session_id,
+                "new_expires_at": new_expires_at}
+
+    def generate_session_notes(self, old_session_id: str) -> str:
+        old_session = self.db['sessions'].find_one({"_id": old_session_id})
+        if not old_session:
+            return "No previous session data found."
+
+        # Extract relevant data for LLM prompt
+        #TODO work more on it
+        chat_history = old_session.get("chat_history", "No previous conversation available.")
+        llm_prompt = f"Summarize the following therapy session:\n{chat_history}"
+        session_notes = generate_json_response(llm_prompt)
+
+        return session_notes
+
+    def create_follow_up_session(self, old_session_id: str):
+        old_session = db['sessions'].find_one({"_id": old_session_id})
+        if not old_session:
+            return {"error": "Old session not found"}
+
+        # Generate session notes using LLM
+        session_notes = self.generate_session_notes(old_session_id)
+
+        # Prepare data for new session
+        session_data = SessionCreateRequest(
+            uid=old_session["uid"],
+            duration=old_session["duration"],
+            treatment_goals=old_session["treatment_goals"],
+            client_expectations=old_session["client_expectations"],
+            session_notes=session_notes,
+            termination_plan=old_session["termination_plan"],
+            review_of_progress=old_session["review_of_progress"],
+            thank_you_note=old_session["thank_you_note"],
+            metadata={"follow_up_of": old_session_id}  # Indicate it's a follow-up session
+        )
+
+        # Call the existing session creation method
+        new_session_response = self.create_session(session_data)
+
+        return new_session_response  # Return standard session creation response
+
+    def completed_session(self, session_id):
+        session = db['sessions'].find_one({"session_id": session_id})
+
+        if not session:
+            return {"error": "Session not found."}
+
+        if session["status"] != "active":
+            return {"error": "Only active sessions can be paused."}
+
+        # Calculate remaining duration before pausing
+        current_time = datetime.now(datetime.UTC)
+
+        # Update session status
+        db['sessions'].update_one(
+            {"session_id": session_id},
+            {"$set": {"status": "completed", "completed_at": current_time}}
+        )
+
+        return {"message": "Session paused successfully.", "session_id": session_id}

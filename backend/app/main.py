@@ -100,6 +100,23 @@ def list_active_sessions_by_user(user_id: str):
     active_sessions = session_manager.list_active_sessions_by_user(user_id)
     return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
 
+
+@app.post("/api/pause_session/{session_id}")
+async def pause_session(session_id: str):
+    return session_manager.pause_session(session_id)
+
+@app.post("/api/resume_session/{session_id}")
+async def resume_session(session_id: str):
+    return session_manager.resume_session(session_id)
+
+@app.post("/api/completed_session/{session_id}")
+async def resume_session(session_id: str):
+    return session_manager.completed_session(session_id)
+
+@app.post("/follow_up/{old_session_id}")
+async def follow_up_session(old_session_id: str):
+    return session_manager.create_follow_up_session(old_session_id)
+
 @app.get('/health')
 async def health():
     return {"status": "ok"}
