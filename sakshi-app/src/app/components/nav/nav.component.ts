@@ -1,21 +1,22 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { AuthService } from '../../_services/auth.service';
+import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { RouterModule } from '@angular/router';
+
+import { AuthService } from '../../_services/auth.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { User } from '../../_models/User';
 
 @Component({
   selector: 'app-nav',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatMenuModule],
   templateUrl: './nav.component.html',
 })
 export class NavComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   isNavOpen = false;
-  isProfileOpen = false;
   signinSub!: Subscription;
 
   constructor(private authSrv: AuthService) {}
@@ -32,9 +33,6 @@ export class NavComponent implements OnInit, OnDestroy {
 
   toggleNav(v?: boolean) {
     this.isNavOpen = v ?? !this.isNavOpen;
-  }
-  toggleProfile(v?: boolean) {
-    this.isProfileOpen = v ?? !this.isProfileOpen;
   }
 
   ngOnDestroy(): void {

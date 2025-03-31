@@ -59,10 +59,10 @@ export class CreateComponent implements OnInit {
       sessionDuration: [30, Validators.required],
       treatmentGoals: ['', Validators.required],
       clientExpectations: ['', Validators.required],
-      sessionNotes: [''],
       terminationPlan: ['', Validators.required],
       reviewOfProgress: [''],
       thankYouNote: [''],
+      sessionNotes: [''],
     });
   }
 
