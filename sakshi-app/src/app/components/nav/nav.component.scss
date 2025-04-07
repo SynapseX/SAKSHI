@@ -30,7 +30,7 @@
 } */
 
 .nav_link_mob {
-  @apply block rounded-md px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-700 cursor-pointer;
+  @apply block rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-700 cursor-pointer;
 
   &.active {
     @apply text-green-400 hover:text-green-500;

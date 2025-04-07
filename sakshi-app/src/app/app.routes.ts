@@ -15,6 +15,7 @@ import { authGuard } from '@/_guards/auth.guard';
 import { optAuthGuard } from '@/_guards/opt_auth.guard';
 import { ProfileComponent } from '@/features/profile/profile.component';
 import { AboutComponent } from './features/about/about.component';
+import { authResolver } from './_resolvers/auth.resolver';
 
 export const routes: Routes = [
   {
@@ -34,6 +35,7 @@ export const routes: Routes = [
     component: AuthComponent,
     canActivate: [optAuthGuard],
     title: 'Signin to get a FREE Session on SAKSHI.AI',
+    resolve: { to: authResolver },
   },
   {
     path: '',
