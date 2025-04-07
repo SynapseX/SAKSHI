@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import {
   FormBuilder,
@@ -14,9 +14,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 
-import { SessionService } from '../../_services/session.service';
 import { ToastrService } from 'ngx-toastr';
-import { ModalComponent } from '../../components/modal/modal.component';
+import { SessionService } from '@/_services/session.service';
+import { ModalComponent } from '@/components/modal/modal.component';
 
 @Component({
   selector: 'app-create',

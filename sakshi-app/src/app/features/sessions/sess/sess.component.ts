@@ -2,12 +2,12 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ToastrService } from 'ngx-toastr';
-import { DateAsAgoPipe } from '../../_utils/date-as-ago.pipe';
-import { SessionService } from '../../_services/session.service';
+import { DateAsAgoPipe } from '@/_utils/date-as-ago.pipe';
+import { SessionService } from '@/_services/session.service';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ModalComponent } from '../../components/modal/modal.component';
+import { ModalComponent } from '@/components/modal/modal.component';
 
 @Component({
   selector: 'app-sess',

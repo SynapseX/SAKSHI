@@ -1,0 +1,38 @@
+.navbar {
+  @apply backdrop-blur-sm transition-colors bg-white rounded-b-2xl shadow-md;
+
+  /* &-plain {
+    @apply backdrop-blur-0 bg-white;
+  } */
+}
+
+.nav_link_desk {
+  @apply rounded-md px-1.5 py-1 text-sm font-medium text-gray-600 hover:text-gray-700 cursor-pointer;
+
+  &.active {
+    @apply border-b-2 rounded border-green-600 bg-gradient-to-t from-green-200 to-green-50;
+  }
+}
+
+/* .nav_link_desk {
+  @apply rounded-md px-1.5 py-1 text-sm font-medium text-gray-300 hover:text-white;
+
+  &.active {
+    @apply border-dotted border-2 rounded border-white;
+  }
+} */
+/* .nav_link_desk_plain {
+  @apply text-gray-600 hover:text-gray-700;
+
+  &.active {
+    @apply border-gray-700;
+  }
+} */
+
+.nav_link_mob {
+  @apply block rounded-md px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-700 cursor-pointer;
+
+  &.active {
+    @apply text-green-400 hover:text-green-500;
+  }
+}

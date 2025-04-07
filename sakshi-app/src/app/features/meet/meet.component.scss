@@ -1,0 +1,10 @@
+.icon_btn {
+  @apply inline-grid place-items-center border p-3 rounded-full shadow outline-none active:bg-gray-200 transition-colors disabled:bg-gray-100 disabled:text-gray-400;
+}
+.icon_btn-2 {
+  @apply inline-grid place-items-center p-2 rounded-full outline-none active:bg-gray-200 transition-colors disabled:bg-gray-100 disabled:text-gray-400;
+}
+
+.box {
+  @apply p-12 border rounded-md;
+}

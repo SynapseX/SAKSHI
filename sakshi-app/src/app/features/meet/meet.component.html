@@ -1,0 +1,60 @@
+<section
+  class="fixed z-40 top-0 left-0 w-full h-full bg-gray-100 flex flex-col"
+>
+  <div class="py-6 px-4 bg-gray-200">
+    <div class="flex items-center gap-2">
+      <mat-icon
+        class="text-transparent bg-gradient-to-t from-green-400 to-green-200 bg-clip-text"
+        >star_shine</mat-icon
+      >
+      <h3 class="text-base font-semibold">
+        Exploring Your Path: An Initial Consultation
+      </h3>
+    </div>
+  </div>
+  <div class="mb-auto p-8">
+    <div class="box w-full h-full grid place-items-center">
+      <div class="">
+        <mat-icon class="!size-24 text-[6rem]">robot_2</mat-icon>
+      </div>
+    </div>
+  </div>
+  <div
+    class="p-6 grid grid-cols-1 md:grid-cols-3 items-center justify-items-center"
+  >
+    <div class="hidden md:block justify-self-start py-2">11:37PM</div>
+    <div class="flex items-center space-x-2 mx-auto">
+      <button class="icon_btn" disabled matTooltip="Unmute">
+        <mat-icon>mic_off</mat-icon>
+      </button>
+      <button class="icon_btn" disabled>
+        <mat-icon>videocam_off</mat-icon>
+      </button>
+      <button class="icon_btn">
+        <mat-icon>closed_caption</mat-icon>
+      </button>
+      <button class="icon_btn" [matMenuTriggerFor]="meetMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <span class="!ml-3 !mr-1 text-gray-200">|</span>
+      <button mat-mini-fab class="border" color="warn">
+        <mat-icon>call_end</mat-icon>
+      </button>
+    </div>
+    <div class="hidden md:flex items-center justify-self-end p-2">
+      <button class="icon_btn-2">
+        <mat-icon>info</mat-icon>
+      </button>
+      <span class="icon_btn-2">
+        <mat-icon>lock</mat-icon>
+      </span>
+    </div>
+  </div>
+</section>
+<mat-menu #meetMenu="matMenu" class="!bg-gray-50 !shadow-sm">
+  <button mat-menu-item>Settings</button>
+  <button mat-menu-item>System Health</button>
+  <div class="my-2 h-[2px] bg-gray-300 overflow-hidden"></div>
+  <button mat-menu-item>Help/Support</button>
+  <button mat-menu-item>About</button>
+</mat-menu>

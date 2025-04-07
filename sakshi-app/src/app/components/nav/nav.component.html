@@ -1,240 +1,257 @@
-<nav class="bg-gray-800">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
-      <div class="flex items-center">
+<div class="fixed w-full top-0 z-20">
+  <nav class="navbar global-wrapper">
+    <div class="">
+      <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <!-- Brand Logo -->
         <div class="shrink-0">
           <img
             style="width: 160px; height: 50px"
-            src="/assets/brand/sakshi-brand-logo-dark.svg"
+            src="/assets/brand/sakshi-brand-logo.svg"
             alt="Sakshi.AI"
           />
         </div>
+        <!-- Menu Links -->
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <a
               routerLink="/"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-              [routerLinkActive]="['bg-gray-900', 'text-white']"
+              class="nav_link_desk"
+              routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: true }"
               >Home</a
+            >
+            <a
+              routerLink="/about"
+              class="nav_link_desk"
+              routerLinkActive="active"
+              >About Us</a
             >
             @if (currentUser) {
             <a
               routerLink="/sessions"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-              [routerLinkActive]="['bg-gray-900', 'text-white']"
+              class="nav_link_desk"
+              routerLinkActive="active"
               >Sessions</a
             >
             <a
               routerLink="/chat"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-              [routerLinkActive]="['bg-gray-900', 'text-white']"
+              class="nav_link_desk"
+              routerLinkActive="active"
               >Chats</a
             >
             <a
               routerLink="/meet"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-              [routerLinkActive]="['bg-gray-900', 'text-white']"
+              class="nav_link_desk"
+              routerLinkActive="active"
               >Meet Demo</a
             >
             }
           </div>
         </div>
-      </div>
-      <div class="hidden md:block">
-        <div class="ml-4 flex items-center md:ml-6">
-          <!-- Profile dropdown -->
-          @if (currentUser) {
-          <div class="relative ml-3">
-            <div>
-              <button
-                type="button"
-                class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
-                [matMenuTriggerFor]="profileMenu"
+        <!-- Profile dropdown -->
+        <div class="hidden md:block">
+          <div class="ml-4 flex items-center md:ml-6">
+            @if (currentUser) {
+            <div class="relative ml-3">
+              <div>
+                <button
+                  type="button"
+                  class="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
+                  [matMenuTriggerFor]="profileMenu"
+                >
+                  <!-- (click)="toggleProfile()" -->
+                  <span class="absolute -inset-1.5"></span>
+                  <img
+                    class="size-8 rounded-full"
+                    [src]="
+                      currentUser.photoURL ||
+                      'https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg'
+                    "
+                    [alt]="currentUser.displayName || ''"
+                    (error)="loadDefaultImage($event)"
+                  />
+                </button>
+              </div>
+
+              <!--Dropdown menu-->
+
+              <mat-menu
+                #profileMenu="matMenu"
+                role="menu"
+                tabindex="-1"
+                class="!shadow-md"
               >
-                <!-- (click)="toggleProfile()" -->
-                <span class="absolute -inset-1.5"></span>
-                <img
-                  class="size-8 rounded-full"
-                  [src]="
-                    currentUser.photoURL ||
-                    'https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg'
-                  "
-                  [alt]="currentUser.displayName || ''"
-                />
-              </button>
+                <div class="px-4 py-3">
+                  <h3 class="text-sm font-semibold">
+                    {{ currentUser.displayName }}
+                  </h3>
+                  <p class="text-xs text-gray-500">({{ currentUser.email }})</p>
+                </div>
+                <a
+                  routerLink="/profile"
+                  class="text-sm text-gray-700"
+                  role="menuitem"
+                  tabindex="-1"
+                  mat-menu-item
+                  >Your Profile</a
+                >
+                <a
+                  href="#"
+                  class="text-sm text-gray-700"
+                  role="menuitem"
+                  tabindex="-1"
+                  mat-menu-item
+                  >Settings</a
+                >
+                <button
+                  class="text-sm !text-red-400"
+                  role="menuitem"
+                  mat-menu-item
+                  (click)="googleSignOut()"
+                >
+                  Sign out
+                </button>
+              </mat-menu>
             </div>
-
-            <!--Dropdown menu-->
-
-            <mat-menu
-              #profileMenu="matMenu"
-              role="menu"
-              tabindex="-1"
-              class="!shadow-md"
+            }@else {
+            <button
+              class="px-3 py-1.5 text-gray-800 rounded-md m-2"
+              routerLink="/auth"
+              routerLinkActive="!text-gray-500"
             >
-              <a
-                routerLink="/profile"
-                class="text-sm text-gray-700"
-                role="menuitem"
-                tabindex="-1"
-                mat-menu-item
-                >Your Profile</a
-              >
-              <a
-                href="#"
-                class="text-sm text-gray-700"
-                role="menuitem"
-                tabindex="-1"
-                mat-menu-item
-                >Settings</a
-              >
-              <button
-                class="text-sm !text-red-400"
-                role="menuitem"
-                mat-menu-item
-                (click)="googleSignOut()"
-              >
-                Sign out
-              </button>
-            </mat-menu>
+              Sign in
+            </button>
+            }
           </div>
-          }@else {
+        </div>
+        <!-- Mobile menu button -->
+        <div class="-mr-2 flex md:hidden">
           <button
-            class="px-3 py-1.5 bg-green-600 text-white rounded-md m-2"
-            routerLink="/auth"
-            routerLinkActive="!bg-gray-800"
+            type="button"
+            class="relative inline-flex items-center justify-center rounded-full bg-gray-100 p-2 text-gray-600 hover:bg-gray-200 hover:text-gray-700"
+            (click)="toggleNav()"
           >
-            Sign in
+            <span class="absolute -inset-0.5"></span>
+            <svg
+              class="size-6"
+              [ngClass]="isNavOpen ? 'hidden' : 'block'"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+            <svg
+              class="size-6"
+              [ngClass]="isNavOpen ? 'block' : 'hidden'"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              aria-hidden="true"
+              data-slot="icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
           </button>
-          }
         </div>
       </div>
-      <div class="-mr-2 flex md:hidden">
-        <!-- Mobile menu button -->
-        <button
-          type="button"
-          class="relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
-          (click)="toggleNav()"
-        >
-          <span class="absolute -inset-0.5"></span>
-          <svg
-            class="size-6"
-            [ngClass]="isNavOpen ? 'hidden' : 'block'"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            aria-hidden="true"
-            data-slot="icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-            />
-          </svg>
-          <svg
-            class="size-6"
-            [ngClass]="isNavOpen ? 'block' : 'hidden'"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            aria-hidden="true"
-            data-slot="icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6 18 18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      </div>
     </div>
-  </div>
 
-  <!-- Mobile menu, show/hide based on menu state. -->
-  <div [ngClass]="isNavOpen ? '' : 'hidden'" id="mobile-menu">
-    <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-      <a
-        (click)="toggleNav(false)"
-        routerLink="/"
-        class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-        [routerLinkActive]="['bg-gray-900', 'text-white']"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >Home</a
-      >
+    <!-- Mobile menu, show/hide based on menu state. -->
+    <div [ngClass]="isNavOpen ? '' : 'hidden'" id="mobile-menu">
+      <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+        <a
+          (click)="toggleNav(false)"
+          routerLink="/"
+          class="nav_link_mob"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Home</a
+        >
+        <a
+          (click)="toggleNav(false)"
+          routerLink="/about"
+          class="nav_link_mob"
+          routerLinkActive="active"
+          >About Us</a
+        >
+        @if (currentUser) {
+        <a
+          (click)="toggleNav(false)"
+          routerLink="/sessions"
+          class="nav_link_mob"
+          routerLinkActive="active"
+          >Sessions</a
+        >
+        <a routerLink="/chat" class="nav_link_mob" routerLinkActive="active"
+          >Chat</a
+        >
+        <a
+          (click)="toggleNav(false)"
+          routerLink="/meet"
+          class="nav_link_mob"
+          routerLinkActive="active"
+          >Meet Demo</a
+        >
+        } @else {
+        <a
+          (click)="toggleNav(false)"
+          routerLink="/auth"
+          class="nav_link_mob"
+          routerLinkActive="active"
+          >Sign In</a
+        >
+        }
+      </div>
       @if (currentUser) {
-      <a
-        (click)="toggleNav(false)"
-        routerLink="/sessions"
-        class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-        [routerLinkActive]="['bg-gray-900', 'text-white']"
-        >Sessions</a
-      >
-      <a
-        routerLink="/chat"
-        class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-        [routerLinkActive]="['bg-gray-900', 'text-white']"
-        >Chat</a
-      >
-      <a
-        (click)="toggleNav(false)"
-        routerLink="/meet"
-        class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-        [routerLinkActive]="['bg-gray-900', 'text-white']"
-        >Meet Demo</a
-      >
-      } @else {
-      <a
-        (click)="toggleNav(false)"
-        routerLink="/auth"
-        class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-        [routerLinkActive]="['bg-gray-900', 'text-white']"
-        >Login</a
-      >
+      <div class="border-t border-gray-200 pt-4 pb-3">
+        <div class="flex items-center px-5">
+          <div class="shrink-0">
+            <img
+              class="size-10 rounded-full"
+              [src]="currentUser.photoURL"
+              [alt]="currentUser.displayName"
+              (error)="loadDefaultImage($event)"
+            />
+          </div>
+          <div class="ml-3">
+            <div class="text-base/5 font-medium">
+              {{ currentUser.displayName }}
+            </div>
+            <div class="text-sm font-medium text-gray-500">
+              {{ currentUser.email }}
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 space-y-1 px-2">
+          <a
+            routerLink="/profile"
+            routerLinkActive="active"
+            (click)="toggleNav(false)"
+            class="nav_link_mob"
+            >Your Profile</a
+          >
+          <a href="#!" class="nav_link_mob">Settings</a>
+          <a
+            class="nav_link_mob !text-red-500"
+            (click)="isNavOpen = false; googleSignOut()"
+            >Sign out</a
+          >
+        </div>
+      </div>
       }
     </div>
-    @if (currentUser) {
-    <div class="border-t border-gray-700 pt-4 pb-3">
-      <div class="flex items-center px-5">
-        <div class="shrink-0">
-          <img
-            class="size-10 rounded-full"
-            [src]="currentUser.photoURL"
-            [alt]="currentUser.displayName"
-          />
-        </div>
-        <div class="ml-3">
-          <div class="text-base/5 font-medium text-white">
-            {{ currentUser.displayName }}
-          </div>
-          <div class="text-sm font-medium text-gray-400">
-            {{ currentUser.email }}
-          </div>
-        </div>
-      </div>
-      <div class="mt-3 space-y-1 px-2">
-        <a
-          routerLink="/profile"
-          (click)="toggleNav(false)"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-          >Your Profile</a
-        >
-        <a
-          href="#"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-          >Settings</a
-        >
-        <a
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-          (click)="isNavOpen = false; googleSignOut()"
-          >Sign out</a
-        >
-      </div>
-    </div>
-    }
-  </div>
-</nav>
+  </nav>
+</div>

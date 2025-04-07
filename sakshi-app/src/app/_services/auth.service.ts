@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { type FirebaseApp, initializeApp } from 'firebase/app';
 import { type Analytics, getAnalytics } from 'firebase/analytics';
 import {
@@ -8,10 +10,9 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from 'firebase/auth';
-import { BehaviorSubject } from 'rxjs';
 import { User } from '../_models/User';
 import { ConfigService } from './config.service';
-import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +26,11 @@ export class AuthService {
   currentUserSource = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSource.asObservable();
 
-  constructor(private cfgSrv: ConfigService, private router: Router) {
+  constructor(
+    private cfgSrv: ConfigService,
+    private router: Router,
+    private tstSrv: ToastrService
+  ) {
     const firebaseConfig = {
       apiKey: cfgSrv.get('API_KEY'),
       authDomain: cfgSrv.get('AUTH_DOMAIN'),
@@ -76,9 +81,9 @@ export class AuthService {
 
   googleSignIn() {
     const auth = getAuth(this.app);
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        signInWithPopup(auth, new GoogleAuthProvider()).then((result) => {
+    setPersistence(auth, browserLocalPersistence).then(() => {
+      signInWithPopup(auth, new GoogleAuthProvider())
+        .then((result) => {
           const credential = GoogleAuthProvider.credentialFromResult(result);
           const token = credential?.accessToken;
           const user: User = {
@@ -89,16 +94,15 @@ export class AuthService {
             accessToken: token,
           };
           this.setUser(user);
+        })
+        .catch((error) => {
+          // const errorCode = error.code;
+          // const errorMessage = error.message;
+          // const email = error.customData.email;
+          // const credential = GoogleAuthProvider.credentialFromError(error);
+          this.tstSrv.error('Could not sign in. Try Later');
         });
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        const email = error.customData.email;
-        // const credential = GoogleAuthProvider.credentialFromError(error);
-
-        console.error({ errorCode, errorMessage, email });
-      });
+    });
   }
 
   googleSignOut() {
@@ -110,6 +114,7 @@ export class AuthService {
       })
       .catch((error) => {
         console.log('Error in signout', error);
+        this.tstSrv.error('Error in signout. Try Later');
       });
   }
 }

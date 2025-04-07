@@ -350,7 +350,7 @@ class SessionManager:
             return {"error": "Only active sessions can be paused."}
 
         # Calculate remaining duration before pausing
-        current_time = datetime.now(datetime.UTC)
+        current_time = datetime.datetime.now(datetime.UTC)
 
         # Update session status
         db['sessions'].update_one(
@@ -358,4 +358,4 @@ class SessionManager:
             {"$set": {"status": "completed", "completed_at": current_time}}
         )
 
-        return {"message": "Session paused successfully.", "session_id": session_id}
+        return {"message": "Session completed successfully.", "session_id": session_id}
