@@ -11,11 +11,15 @@ from backend.app.models.models import UserProfile, SessionCreateRequest
 from backend.app.services.mongodb_service import db
 from backend.app.services.session_manager import SessionManager
 from backend.app.services.conversation_service import process_user_prompt
-
+from backend.app.services.session_watcher import start_watching
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+# run the code which will have a list of active sessions and when the active session is created we send it to the list and when it reaches time we end the session
+
 app = FastAPI()
+session_deamon = start_watching()
 session_manager = SessionManager()
 
 app.add_middleware(
@@ -63,6 +67,7 @@ async def handle_prompt(request: PromptRequest):
 def create_session(request: SessionCreateRequest):
     try:
         session = session_manager.create_session(request)
+        session_deamon.add_session(session)
         return {"message": "Session created", "session": json.loads(json.dumps(session, default=str))}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -45,8 +45,10 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     Retrieves previous context, decides on phase shift, generates feedback or follow-up questions,
     and logs the session under each phase (as a list of conversation entries).
     """
-    previous_context, current_phase = analyze_previous_chats(session_id, max_tokens)
     session = session_manager.get_session(session_id)
+    if not session or session.get("status") != 'active':
+        return {"error": "Invalid session or user ID."}
+    previous_context, current_phase = analyze_previous_chats(session_id, max_tokens)
     if not previous_context:
         logger.info(f"No previous context found for user: {user_id}. Starting Initial Phase.")
         current_phase = "Initial Phase"
