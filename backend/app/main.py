@@ -101,7 +101,7 @@ async def resume_session(session_id: str):
 async def resume_session(session_id: str):
     return session_manager.completed_session(session_id)
 
-@app.post("/follow_up/{old_session_id}")
+@app.post("/api/follow_up/{old_session_id}")
 async def follow_up_session(old_session_id: str):
     return session_manager.create_follow_up_session(old_session_id)
 

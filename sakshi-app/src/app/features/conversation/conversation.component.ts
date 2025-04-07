@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { Chat } from '../_models/Chat';
-import { ChatService } from '../_services/chat.service';
-import { MessageBoxComponent } from '../components/message-box/message-box.component';
+import { Chat } from '../../_models/Chat';
+import { ChatService } from '../../_services/chat.service';
+import { MessageBoxComponent } from '../../components/message-box/message-box.component';
 
 import { FormGroup, FormBuilder } from '@angular/forms';
 

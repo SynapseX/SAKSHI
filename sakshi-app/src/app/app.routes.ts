@@ -1,25 +1,32 @@
 import { Routes } from '@angular/router';
 
-import { HomeComponent } from './home/home.component';
-import { AuthComponent } from './auth/auth.component';
-import { MeetComponent } from './meet/meet.component';
-import { SessionsComponent } from './sessions/sessions.component';
-import { ConversationComponent } from './conversation/conversation.component';
-import { SessHomeComponent } from './sessions/sess-home/sess-home.component';
-import { CreateComponent } from './sessions/create/create.component';
+import { HomeComponent } from './features/home/home.component';
+import { AuthComponent } from './features/auth/auth.component';
+import { MeetComponent } from './features/meet/meet.component';
+import { SessionsComponent } from './features/sessions/sessions.component';
+import { ConversationComponent } from './features/conversation/conversation.component';
+import { SessHomeComponent } from './features/sessions/sess-home/sess-home.component';
+import { CreateComponent } from './features/sessions/create/create.component';
 
-import { NotFoundComponent } from './errors/not-found/not-found.component';
-import { ServerErrorComponent } from './errors/server-error/server-error.component';
+import { NotFoundComponent } from '@/errors/not-found/not-found.component';
+import { ServerErrorComponent } from '@/errors/server-error/server-error.component';
 
-import { authGuard } from './_guards/auth.guard';
-import { optAuthGuard } from './_guards/opt_auth.guard';
-import { ProfileComponent } from './profile/profile.component';
+import { authGuard } from '@/_guards/auth.guard';
+import { optAuthGuard } from '@/_guards/opt_auth.guard';
+import { ProfileComponent } from '@/features/profile/profile.component';
+import { AboutComponent } from './features/about/about.component';
 
 export const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
     title: 'SAKSHI.AI',
+    canActivate: [optAuthGuard],
+  },
+  {
+    path: 'about',
+    component: AboutComponent,
+    title: 'About Us | SAKSHI.AI',
     canActivate: [optAuthGuard],
   },
   {

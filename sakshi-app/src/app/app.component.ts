@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterContentInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { HomeComponent } from './home/home.component';
+import { HomeComponent } from './features/home/home.component';
 import { NavComponent } from './components/nav/nav.component';
 
 @Component({

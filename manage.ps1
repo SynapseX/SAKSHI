@@ -43,8 +43,23 @@ switch($action){
         yarn start:prod
     } 
     "api:start" {
+        # WIP
+
+        if($env:VIRTUAL_ENV -eq $null){
+            Write-Host "ENV starting ... " -NoNewLine
+            Set-Location -Path "$basePath\backend"
+            
+            if($env:OS -eq "Windows_NT"){
+                & '.venv\Scripts\activate.ps1'
+            }else{
+                bash -rcfile .venv\Scripts\activate
+            }
+            Write-Host "Done"
+        }
+
         Set-Location -Path "$basePath\backend\app"
-        uvicorn main:app --port 8000 --reload
+        # & ../.venv/Scripts/python.exe -m uvicorn main:app --port 8000 --reload --use-colors --env-file ..\.env
+        & C:\Users\saroj\Work\SAKSHI\backend\.venv\Scripts\python.exe C:\Users\saroj\Work\SAKSHI\backend\app\main.py 
     }
     default{
         Write-Host "Provide a valid action"

@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
-import { LoaderService } from '../../_services/loader.service';
-import { SessionService } from '../../_services/session.service';
-import { AuthService } from '../../_services/auth.service';
+import { LoaderService } from '@/_services/loader.service';
+import { SessionService } from '@/_services/session.service';
+import { AuthService } from '@/_services/auth.service';
 
 import { SessComponent } from '../sess/sess.component';
-import { EmptyBoxComponent } from '../../components/empty-box/empty-box.component';
+import { EmptyBoxComponent } from '@/components/empty-box/empty-box.component';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 

@@ -44,15 +44,21 @@ $sakshi-app-theme: mat.define-light-theme(
 @tailwind components;
 @tailwind utilities;
 
+/* TOASTR */
+@import "ngx-toastr/toastr";
+
 body {
   margin: 0;
   font-family: Inter, "Helvetica Neue", sans-serif;
   font-weight: normal;
 }
 
-/* TOASTR */
-@import "ngx-toastr/toastr";
-
+.global-wrapper {
+  @apply mx-auto max-w-7xl;
+}
+.section-wrapper {
+  @apply pt-24 pb-12;
+}
 /* CHAT */
 
 .scroll {
@@ -143,7 +149,7 @@ body {
 } */
 /* ------------------ */
 
-// OVERRIDES
+/* OVERRIDES */
 
 .font-semibold {
   font-weight: 500;
