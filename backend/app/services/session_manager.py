@@ -301,15 +301,134 @@ class SessionManager:
         return {"message": "Session resumed successfully.", "session_id": session_id,
                 "new_expires_at": new_expires_at}
 
-    def generate_session_notes(self, old_session_id: str) -> str:
+    def generate_session_notes(self, old_session_id: str) -> dict:
         old_session = self.db['sessions'].find_one({"_id": old_session_id})
         if not old_session:
             return "No previous session data found."
 
         # Extract relevant data for LLM prompt
-        #TODO work more on it
         chat_history = old_session.get("chat_history", "No previous conversation available.")
-        llm_prompt = f"Summarize the following therapy session:\n{chat_history}"
+
+        llm_prompt = f"""                
+                You are an expert clinical documentation assistant trained to assist therapists in structuring session notes. Based on the **chat history** and **key session attributes** from the previous session, you will generate a **therapy session note** in structured JSON format.
+                
+                Use the template provided below, and ensure each field is completed as thoroughly as possible based on the available data. If any data is missing or not evident, mark it with a descriptive placeholder like `"Not discussed in session"` or `"To be updated"`.
+                
+                ---
+                
+                ### 🔹 INPUTS:
+                
+                #### 1. Chat History:
+                A full chat log from a therapy session between therapist and client.
+                
+                #### 2. Session Metadata:
+                
+                ```json
+               {{
+                  "id": "uuid",
+                  "uid": "user_id",
+                  "duration": "in minutes",
+                  "name": "Client's name",
+                  "treatment_goals": "high-level therapeutic goals",
+                  "client_expectations": "what the client wants from therapy",
+                  "session_notes": "general notes from the session",
+                  "chat_history": "full chat log",
+                  "termination_plan": "if discussed, any plans to conclude therapy",
+                  "review_of_progress": "therapist's review of goal progress",
+                  "thank_you_note": "summary or closing message",
+                  "metadata":{{
+                    "any": "additional optional information"
+                  }}
+                }}
+                ```
+                
+                ORIGINAL SESSION DATA
+                ---
+               {{old_session}}
+                
+                ---
+                
+                ---
+                
+                ### 🔹 OBJECTIVE:
+                
+                Transform this data into the following structured **TherapySessionNote JSON**:
+                
+                ```json
+               {{
+                  "basic_information":{{
+                    "client_id": "From uid",
+                    "client_name": "Infer from chat if available or leave blank",
+                    "session_date": "Infer from context or use today's date",
+                    "session_number": "Estimate or leave blank",
+                    "session_time": "Estimate or leave blank",
+                    "session_duration": "Use value from 'duration'"
+                  }},
+                  "client_subjective_report":{{
+                    "presenting_issues": "Based on session_notes + chat",
+                    "stated_progress": "Use 'review_of_progress' + client responses from chat",
+                    "key_client_quotes": ["Pull 2–3 direct quotes from the chat that reflect client perspective"]
+                  }},
+                  "therapist_objective_observations":{{
+                    "mental_status":{{
+                      "appearance": "From metadata or notes",
+                      "mood": "Infer from client's tone or self-report",
+                      "affect": "E.g., flat, reactive, congruent, etc.",
+                      "behavior": "Notable behaviors during session",
+                      "speech": "E.g., pressured, slow, normal",
+                      "thought_processes": "E.g., linear, disorganized, racing"
+                    }},
+                    "nonverbal_cues": "Any notable nonverbal clues mentioned or inferred"
+                  }},
+                  "assessment_and_clinical_impression":{{
+                    "progress_towards_goals": "Use 'review_of_progress'",
+                    "themes": ["Pull 1–3 recurring topics or emotional threads"],
+                    "clinical_formulation_update": "Any updates to understanding of client situation"
+                  }},
+                  "risk_assessment":{{
+                    "risk_to_self_or_others":{{
+                      "suicidal_ideation": false,
+                      "self_harm": false,
+                      "harm_to_others": false,
+                      "details": "Leave empty or use chat analysis"
+                    }},
+                    "safety_plan":{{
+                      "discussed": false,
+                      "description": ""
+                    }}
+                  }},
+                  "interventions": [
+                   {{
+                      "technique": "e.g., CBT, DBT, psychoeducation",
+                      "description": "What was done in session",
+                      "rationale": "Why this method was used"
+                    }}
+                  ],
+                  "client_response_to_interventions":{{
+                    "engagement_level": "e.g., receptive, resistant, reflective",
+                    "client_feedback": "Client's view of the approach/session"
+                  }},
+                  "plan_for_next_session":{{
+                    "topics_to_explore": ["Based on open threads from current session"],
+                    "planned_interventions": ["Based on client needs or unfinished goals"],
+                    "homework_or_tasks": "If any were assigned",
+                    "treatment_plan_adjustments": "Updates to approach if needed"
+                  }}
+                }}
+                ```
+                
+                ---
+                
+                ### 🔹 INSTRUCTIONS TO THE LLM:
+                
+                - Use **natural clinical language** for each field.
+                - Avoid duplicating content—summarize where necessary.
+                - Ensure proper grammar and formatting in all string values.
+                - If context is unclear, use placeholders like `"To be discussed"` or `"Information not available"`.
+                
+                ---
+
+"""
         session_notes = generate_json_response(llm_prompt)
 
         return session_notes
