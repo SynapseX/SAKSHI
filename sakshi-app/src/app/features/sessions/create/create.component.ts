@@ -36,7 +36,7 @@ import { ModalComponent } from '@/components/modal/modal.component';
 })
 export class CreateComponent implements OnInit {
   sessionForm!: FormGroup;
-  minutes = [15, 30, 60];
+  minutes = [1, 5, 15, 30, 60];
   modalState = false;
 
   isLoading = false;

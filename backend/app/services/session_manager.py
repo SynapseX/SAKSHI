@@ -207,6 +207,11 @@ class SessionManager:
         return list(active_sessions)
 
     @staticmethod
+    def list_sessions_by_user(user_id: str):
+        active_sessions = db['sessions'].find({"uid": user_id})
+        return list(active_sessions)
+
+    @staticmethod
     def _calculate_expiry(start_time: datetime, duration: int):
         try:
             value, unit = duration,'minutes'

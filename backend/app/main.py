@@ -90,7 +90,7 @@ def extend_session(session_id: str, additional_duration: int):
 
 @app.get("/api/sessions/active/{user_id}")
 def list_active_sessions_by_user(user_id: str):
-    active_sessions = session_manager.list_active_sessions_by_user(user_id)
+    active_sessions = session_manager.list_sessions_by_user(user_id)
     return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
 
 
