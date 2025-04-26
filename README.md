@@ -167,7 +167,7 @@ We welcome developers, therapists, and researchers!
 
 **SAKSHI AI** is developed by a team passionate about mental health, AI, and empathetic design.
 
-> Created & Maintained by Sraban Kumar Patro 
+> Created & Maintained by Sraban Kumar Patro & Saroj Kumar Sahoo
 > Contact: reg.sraban@gmail.com
 
 ---
