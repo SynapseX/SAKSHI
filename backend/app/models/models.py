@@ -1,7 +1,8 @@
 # backend/models/user_model.py
 import uuid
 from pydantic import BaseModel, Field
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+
 
 class UserProfile(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
