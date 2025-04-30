@@ -14,10 +14,10 @@ import AudioEncoding = google.cloud.texttospeech.v1.AudioEncoding;
 export class TextToSpeechService {
   constructor(private http: HttpClient, private cfgSrc: ConfigService) {
     // Ensure the API key is set in the environment configuration
-    console.log("Google API Key:", this.cfgSrc.get('GOOGLE_API_KEY'));
-    if (!this.cfgSrc.get('GOOGLE_API_KEY')) {
-      throw new Error('Google API key is not set in the environment configuration.');
-    }
+    // console.log("Google API Key:", this.cfgSrc.get('GOOGLE_API_KEY'));
+    // if (!this.cfgSrc.get('GOOGLE_API_KEY')) {
+    //   throw new Error('Google API key is not set in the environment configuration.');
+    // }
     const therapistText = `
     I'm really glad you came in today. It takes courage to open up,
     and I want you to know that this is a safe space where you can share whatever is on your mind.

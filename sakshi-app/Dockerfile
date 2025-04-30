@@ -31,4 +31,4 @@ COPY --from=build /app/dist/sakshi-app/browser /usr/share/nginx/html
 EXPOSE 80
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "node /app/server/index.js & nginx -g 'daemon off;'"]
