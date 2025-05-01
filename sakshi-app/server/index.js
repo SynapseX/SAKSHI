@@ -49,23 +49,35 @@ app.post('/text-to-speech', async (req, res) => {
 });
 
 /** SPEECH TO TEXT **/
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
 app.post('/speech-to-text', upload.single('audio'), async (req, res) => {
   try {
     const file = fs.readFileSync(req.file.path);
     const audioBytes = file.toString('base64');
 
-    const audio = { content: audioBytes };
-    const config = {
-      encoding: 'LINEAR16',
-      sampleRateHertz: 16000,
-      languageCode: 'en-US',
-    };
+    // Convert webm to wav (linear16)
+    const outputPath = './uploads/output.wav';
+    ffmpeg(req.file.path)
+      .output(outputPath)
+      .audioCodec('pcm_s16le') // LINEAR16
+      .audioChannels(1) // Mono audio
+      .on('end', async () => {
+        // Now you can send the wav file to Google Cloud Speech-to-Text
+        const audio = { content: fs.readFileSync(outputPath).toString('base64') };
+        const config = {
+          encoding: 'LINEAR16',
+          languageCode: 'en-US',
+        };
 
-    const [response] = await sttClient.recognize({ audio, config });
-    const transcript = response.results.map(result => result.alternatives[0].transcript).join('\n');
-
-    fs.unlinkSync(req.file.path);
-    res.json({ text: transcript });
+        const [response] = await sttClient.recognize({ audio, config });
+        const transcript = response.results.map(result => result.alternatives[0].transcript).join('\n');
+        console.log(transcript);
+        res.json({ text: transcript });
+      })
+      .run();
   } catch (error) {
     console.error('STT Error:', error);
     res.status(500).json({ error: 'Speech to Text failed' });

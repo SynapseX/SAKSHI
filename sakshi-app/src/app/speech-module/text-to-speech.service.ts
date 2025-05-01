@@ -26,14 +26,14 @@ export class TextToSpeechService {
     Remember, you're not alone in this journey, and I'm here to support you every step of the way.
     `;
 
-    this.synthesizeSpeech(therapistText).subscribe(
-      (response) => {
-        console.log('Audio response:', response);
-      },
-      (error) => {
-        console.error('Error synthesizing speech:', error);
-      }
-    );
+    // this.synthesizeSpeech(therapistText).subscribe(
+    //   (response) => {
+    //     console.log('Audio response:', response);
+    //   },
+    //   (error) => {
+    //     console.error('Error synthesizing speech:', error);
+    //   }
+    // );
   }
 
   synthesizeSpeech(text: string): Observable<any> {
