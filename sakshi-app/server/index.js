@@ -8,6 +8,7 @@ const { SpeechClient } = require('@google-cloud/speech');
 
 const app = express();
 const PORT = 3000;
+const path = require('path');
 
 // Setup
 app.use(cors());
@@ -19,8 +20,24 @@ process.env.GOOGLE_APPLICATION_CREDENTIALS = './server/google-credentials.json';
 const ttsClient = new TextToSpeechClient();
 const sttClient = new SpeechClient();
 
-const upload = multer({ dest: 'uploads/' });
+// Setup multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.webm'; // Use the original extension or fallback to .webm
+    const baseName = path.basename(file.originalname, ext); // Get the base name without extension
+    const uniqueName = `${Date.now()}-${baseName.replace(/\s+/g, '_')}`;
+    cb(null, uniqueName + ext);
+  }
+});
 
+const upload = multer({ storage });
 /** TEXT TO SPEECH **/
 app.post('/text-to-speech', async (req, res) => {
   const { text } = req.body;
@@ -53,35 +70,73 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-app.post('/speech-to-text', upload.single('audio'), async (req, res) => {
-  try {
-    const file = fs.readFileSync(req.file.path);
-    const audioBytes = file.toString('base64');
+// app.post('/speech-to-text', upload.single('audio'), async (req, res) => {
+//   try {
+//     const stats = fs.statSync(req.file.path);
+//     console.log(`File size: ${stats.size} bytes`);
+//     const file = fs.readFileSync(req.file.path);
+//     console.log(req.file.path)
+//     console.log(req.file.filename)
+//     const audioBytes = file.toString('base64');
+//
+//     // Convert webm to wav (linear16)
+//     const outputPath = "./uploads/"+req.file.filename+".wav";
+//     ffmpeg(req.file.path)
+//       .inputFormat('webm')  // Force FFmpeg to treat it as a WebM file
+//       .output(outputPath)
+//       .audioCodec('pcm_s16le') // LINEAR16
+//       .audioChannels(1) // Mono audio
+//       .on('end', async () => {
+//         // Now you can send the wav file to Google Cloud Speech-to-Text
+//         const audio = { content: fs.readFileSync(outputPath).toString('base64') };
+//         const config = {
+//           encoding: 'LINEAR16',
+//           languageCode: 'en-US',
+//         };
+//
+//         const [response] = await sttClient.recognize({ audio, config });
+//         const transcript = response.results.map(result => result.alternatives[0].transcript).join('\n');
+//         console.log(transcript);
+//         res.json({ text: transcript });
+//       })
+//       .on('error', (err, stdout, stderr) => {
+//         console.error('FFmpeg Error:', err);
+//         console.error('FFmpeg Output:', stdout);
+//         console.error('FFmpeg Error Output:', stderr);
+//       })
+//       .run();
+//   } catch (error) {
+//     console.error('STT Error:', error);
+//     res.status(500).json({ error: 'Speech to Text failed' });
+//   }
+// });
 
-    // Convert webm to wav (linear16)
-    const outputPath = './uploads/output.wav';
-    ffmpeg(req.file.path)
-      .output(outputPath)
-      .audioCodec('pcm_s16le') // LINEAR16
-      .audioChannels(1) // Mono audio
-      .on('end', async () => {
-        // Now you can send the wav file to Google Cloud Speech-to-Text
-        const audio = { content: fs.readFileSync(outputPath).toString('base64') };
-        const config = {
-          encoding: 'LINEAR16',
-          languageCode: 'en-US',
-        };
+app.post('/speech-to-text', upload.single('audio'), (req, res) => {
 
-        const [response] = await sttClient.recognize({ audio, config });
-        const transcript = response.results.map(result => result.alternatives[0].transcript).join('\n');
-        console.log(transcript);
-        res.json({ text: transcript });
-      })
-      .run();
-  } catch (error) {
-    console.error('STT Error:', error);
-    res.status(500).json({ error: 'Speech to Text failed' });
+  if (!req.file) {
+    return res.status(400).json({ error: 'No audio file uploaded' });
   }
+
+  const filePath = path.join(__dirname, 'uploads', req.file.filename);
+  console.log('Audio received and saved:', req.file.filename);
+
+  const inputPath = filePath;
+  inputPath.replace(".webm", "");
+  const outputPath = inputPath + '_converted.wav';
+
+  // Add inputFormat explicitly if needed
+  ffmpeg(inputPath)
+    .inputFormat('webm') // Important if file has no extension
+    .toFormat('wav')
+    .on('end', () => {
+      console.log('Conversion succeeded:', outputPath);
+      res.json({ message: 'Success', path: outputPath });
+    })
+    .on('error', (err) => {
+      console.error('FFmpeg Error:', err.message);
+      res.status(500).json({ error: 'Audio conversion failed' });
+    })
+    .save(outputPath);
 });
 
 app.listen(PORT, () => {

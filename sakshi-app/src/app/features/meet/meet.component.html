@@ -49,25 +49,23 @@
         <button mat-mini-fab class="border" color="warn">
           <mat-icon>call_end</mat-icon>
         </button>
+
+        <!-- ✅ Pulsing Mic with Recording Animation -->
+        <div *ngIf="!isRecording" class="relative flex items-center justify-center">
+          <!-- Pulse Animation Circle -->
+          <div class="absolute animate-ping inline-flex h-10 w-10 rounded-full bg-red-400 opacity-75"></div>
+          <!-- Static Circle -->
+          <div class="relative inline-flex rounded-full h-10 w-10 bg-red-500 items-center justify-center">
+            <mat-icon class="text-white text-[1.5rem]">mic</mat-icon>
+          </div>
+          <!-- Timer -->
+          <div class="absolute bottom-[-2rem] text-sm text-gray-700 font-semibold">
+            {{ timeLeft }}s
+          </div>
+        </div>
+
       </div>
 
-      <!-- ✅ Circular Animation with Timer -->
-      <div *ngIf="isRecording" class="record-timer">
-        <svg class="circle-timer" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" stroke="#333" stroke-width="4" fill="none" />
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            stroke="#00f7ff"
-            stroke-width="4"
-            fill="none"
-            [attr.stroke-dasharray]="circumference"
-            [attr.stroke-dashoffset]="dashOffset"
-          />
-        </svg>
-        <div class="timer-text">{{ timeLeft }}s</div>
-      </div>
     </div>
 
     <!-- Info & Lock -->
@@ -82,6 +80,16 @@
   </div>
 </section>
 
+<!-- Right Side Transcription Panel -->
+<div class="fixed top-0 right-0 w-1/3 h-4/5 bg-white border-l-2 p-4 overflow-y-auto shadow-lg z-50">
+  <h4 class="text-lg font-semibold mb-4 text-gray-800">Real-time Transcription</h4>
+  <div class="space-y-2">
+    <!-- Display Transcribed Text -->
+    <div class="transcription-box text-gray-700">
+      <p>{{ transcription }}</p>
+    </div>
+  </div>
+</div>
 <!-- Popup Menu -->
 <mat-menu #meetMenu="matMenu" class="!bg-gray-50 !shadow-sm">
   <button mat-menu-item>Settings</button>
