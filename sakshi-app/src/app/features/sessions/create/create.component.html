@@ -100,7 +100,10 @@
         ></textarea>
       </mat-form-field>
     </div>
-    <div>
+    <div class="space-x-2">
+      <button type="button" (click)="resetSessionForm()" mat-flat-button>
+        <span>Cancel</span>
+      </button>
       @if (isLoading) {
       <button type="button" mat-flat-button>
         <mat-icon class="animate-spin">progress_activity</mat-icon>

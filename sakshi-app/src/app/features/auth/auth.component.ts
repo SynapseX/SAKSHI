@@ -24,7 +24,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     this.signinSub = this.authSrv.currentUser$.subscribe((user) => {
       if (user && this.router.url == '/auth') {
-        // this.router.navigate(['/']);
+        this.router.navigate(['/']);
         console.log('Signed In');
       }
     });

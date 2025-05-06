@@ -41,7 +41,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             router.navigateByUrl('/server-error', navigationExtras);
             break;
           default:
-            tSrv.error('Something unexpected happened!');
+            tSrv.error(`The request couldn't be processed at the moment!`);
             console.error(err);
             break;
         }

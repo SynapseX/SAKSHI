@@ -1,7 +1,7 @@
 <section
   class="fixed z-40 top-0 left-0 w-full h-full bg-gray-100 flex flex-col"
 >
-  <div class="py-6 px-4 bg-gray-200">
+  <div class="py-6 px-4 bg-gray-300">
     <div class="flex items-center gap-2">
       <mat-icon
         class="text-transparent bg-gradient-to-t from-green-400 to-green-200 bg-clip-text"
@@ -12,13 +12,18 @@
       </h3>
     </div>
   </div>
-  <div class="mb-auto p-8">
-    <div class="box w-full h-full grid place-items-center">
-      <div class="">
-        <mat-icon class="!size-24 text-[6rem]">robot_2</mat-icon>
-      </div>
+  <section class="relative mb-auto p-8 flex flex-col">
+    <div class="">
+      <app-meet-avatar [size]="44" [isTalking]="true"></app-meet-avatar>
     </div>
-  </div>
+    <div class="flex">
+      <div class="mt-8 p-4 rounded bg-gray-200">
+        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Rerum
+        voluptate non qui adipisci eum ut omnis id debitis? Quo, culpa?
+      </div>
+      <app-meet-avatar></app-meet-avatar>
+    </div>
+  </section>
   <div
     class="p-6 grid grid-cols-1 md:grid-cols-3 items-center justify-items-center"
   >

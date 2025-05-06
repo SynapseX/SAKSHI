@@ -49,11 +49,11 @@ export class CreateComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initSessionForm();
+    this.sessionForm = this.initSessionForm();
   }
 
   initSessionForm() {
-    this.sessionForm = this.fb.group({
+    return this.fb.group({
       sessionName: [''],
       sessionTime: [new Date().toUTCString()],
       sessionDuration: [30, Validators.required],
@@ -77,16 +77,19 @@ export class CreateComponent implements OnInit {
       next: (res) => {
         this.tstSrv.success(res.message);
         localStorage.setItem('session_id', res.session.session_id);
-        this.sessionForm.reset();
-      },
-      error: (err) => {
-        console.log(err);
-      },
-      complete: () => {
+        this.resetSessionForm();
         this.isLoading = false;
         this.router.navigate(['/chat']);
       },
+      error: (err) => {
+        this.isLoading = false;
+        console.log(err);
+      },
     });
+  }
+
+  resetSessionForm() {
+    this.sessionForm.reset(this.initSessionForm().value);
   }
 
   openModal() {

@@ -1,0 +1,18 @@
+<div class="box grid place-items-center p-8">
+  <div class="relative" [ngStyle]="sizeClasses">
+    @if (isTalking) {
+    <div
+      class="absolute inset-0 rounded-full z-0 animate-talk-ring ring ring-green-600 opacity-60"
+    ></div>
+    <div
+      class="absolute inset-0 rounded-full z-0 animate-talk-ring-delay ring ring-green-500 opacity-50"
+    ></div>
+    }
+
+    <img
+      [src]="imageUrl"
+      alt="AI Therapist Avatar"
+      class="size-full object-cover rounded-full border-4 border-white ring-2 ring-green-600 ring-offset-1 shadow-md z-10 relative"
+    />
+  </div>
+</div>

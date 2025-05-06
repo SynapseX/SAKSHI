@@ -8,6 +8,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { MeetAvatar } from '@/features/meet/meet-avatar/avatar.component';
+
 const MatImports = [
   MatButtonModule,
   MatMenuModule,
@@ -21,7 +23,7 @@ const MatImports = [
 @Component({
   selector: 'app-meet',
   standalone: true,
-  imports: [...MatImports],
+  imports: [...MatImports, MeetAvatar],
   templateUrl: './meet.component.html',
   styleUrl: './meet.component.scss',
 })
