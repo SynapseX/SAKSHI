@@ -67,6 +67,66 @@ Output: {"session_title": "Starting A New Journey: Understanding Your Current Ch
     except json.JSONDecodeError:
         return {"error": "Invalid JSON response from LLM."}
 
+# The exact labels we support
+ALLOWED_MODELS = {
+    "CBT": "Cognitive & Behavioral",
+    "Cognitive & Behavioral": "Cognitive & Behavioral",
+    "Humanistic": "Humanistic & Experiential",
+    "Humanistic & Experiential": "Humanistic & Experiential",
+    "Psychodynamic": "Psychodynamic & Insight‑Oriented",
+    "Psychodynamic & Insight‑Oriented": "Psychodynamic & Insight‑Oriented",
+    "Systemic": "Systemic & Family",
+    "Systemic & Family": "Systemic & Family",
+    "DBT": "Third‑Wave & Acceptance‑Based",
+    "ACT": "Third‑Wave & Acceptance‑Based",
+    "Third‑Wave & Acceptance‑Based": "Third‑Wave & Acceptance‑Based",
+    "Trauma": "Trauma‑Focused",
+    "Trauma‑Focused": "Trauma‑Focused",
+    "Narrative": "Narrative & Solution‑Focused",
+    "Solution‑Focused": "Narrative & Solution‑Focused",
+    "Narrative & Solution‑Focused": "Narrative & Solution‑Focused",
+}
+
+def get_therapy_model(session_data: dict) -> dict:
+    """
+    Classifies the appropriate therapy model for a given session_data dict.
+    Returns a dict with keys:
+      - chosen_model: one of the seven supported model labels
+      - rationale: brief explanation from the LLM
+    """
+    # Build the classification prompt
+    classification_prompt = f"""
+You are a clinical decision‑support assistant.
+Given the following client details, CLASSIFY which therapy model to use among:
+[Cognitive & Behavioral, Humanistic & Experiential, Psychodynamic & Insight‑Oriented,
+Systemic & Family, Third‑Wave & Acceptance‑Based, Trauma‑Focused, Narrative & Solution‑Focused].
+
+{session_data!r}
+
+STRICTLY: Choose only one of the seven listed models.
+IMPORTANT: Base your classification on alignment of duration, goals, expectations,
+note style, termination plan, and progress review methods.
+OUTPUT as valid JSON with keys:
+  "chosen_model": <string>,
+  "rationale": <brief explanation referencing criteria>.
+Do NOT include additional fields or commentary.
+"""
+
+    # 1. Call the LLM to get a JSON-like dict
+    response = generate_json_response(classification_prompt)
+
+    # 2. Extract and normalize the model name
+    raw_model = response.get("chosen_model", "")
+    normalized = ALLOWED_MODELS.get(raw_model)
+
+    # 3. If we didn’t get an allowed label back, fallback to "unknown"
+    chosen_model = normalized if normalized else "unknown"
+    rationale = response.get("rationale", "").strip()
+
+    return {
+        "chosen_model": chosen_model,
+        "rationale": rationale or "No rationale provided."
+    }
 
 def get_first_prompt(session_data):
     """
@@ -94,11 +154,13 @@ def get_first_prompt(session_data):
             "You are a seasoned therapist generating a follow-up prompt for a returning patient. "
             "The patient has provided session notes from the previous session. "
             "Generate a thoughtful follow-up question that builds on those notes and invites the patient to reflect on any changes or progress since the last session. "
+            "Include a brief in 1 line max about the therapy model used and the session's focus.:  "
             "Output the result as a JSON object with a single key 'first_prompt'."
         )
         input_data = {
             "session_notes": session_data["session_notes"],
             "treatment_goals": session_data.get("treatment_goals", []),
+            "therapy_model": session_data.get("therapy_model", "UNKNOWN"),
             "expectations": session_data.get("expectations", "")
         }
     else:
@@ -111,11 +173,13 @@ def get_first_prompt(session_data):
         instruction = (
             "You are a compassionate therapist initiating a new session with a patient who has not been provided any sessions yet. "
             "Generate a generic statement/question that encourages the patient to discuss their current feelings and experiences based on the session form they filled out. "
+            "Include a brief in 1 line max about the therapy model used and the session's focus.:  "
             "Output the result as a JSON object with a single key 'first_prompt'."
         )
         input_data = {
             "session_form": session_data.get("session_form", ""),
             "treatment_goals": session_data.get("treatment_goals", []),
+            "therapy_model": session_data.get("therapy_model", "UNKNOWN"),
             "expectations": session_data.get("expectations", "")
         }
 
@@ -149,7 +213,7 @@ class SessionManager:
             "duration": request.duration,
             "created_at": created_at,
             "expires_at": expires_at,
-            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent),
+            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent.get("narrative_solution_focused_phase_intent")),
             "status": "active",
             "treatment_goals": request.treatment_goals,
             "client_expectations": request.client_expectations,
@@ -164,11 +228,17 @@ class SessionManager:
         session_data["title"] = get_title_for_session(session_data)
 
         # AND insert
-        db['sessions'].insert_one(session_data)
+
 
         #First Prompt generator
+        classify_therapy_model = get_therapy_model(session_data)
+        session_data["therapy_model"] = classify_therapy_model['chosen_model']
+
+        db['sessions'].insert_one(session_data)
+
         first_prompt = get_first_prompt(session_data)
         session_data["first_prompt"] = first_prompt
+
 
         return session_data
 

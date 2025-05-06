@@ -54,7 +54,7 @@ export class CreateComponent implements OnInit {
 
   initSessionForm() {
     return this.fb.group({
-      sessionName: [''],
+      name: ['', Validators.required],
       sessionTime: [new Date().toUTCString()],
       sessionDuration: [30, Validators.required],
       treatmentGoals: ['', Validators.required],
@@ -79,7 +79,7 @@ export class CreateComponent implements OnInit {
         localStorage.setItem('session_id', res.session.session_id);
         this.resetSessionForm();
         this.isLoading = false;
-        this.router.navigate(['/chat']);
+        this.router.navigate(['/meet']);
       },
       error: (err) => {
         this.isLoading = false;

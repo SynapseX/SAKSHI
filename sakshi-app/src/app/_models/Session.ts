@@ -1,5 +1,5 @@
 export interface Session {
-  sessionName?: string;
+  name?: string;
   sessionTime?: string;
   sessionDuration: number;
   treatmentGoals: string;

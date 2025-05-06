@@ -8,7 +8,7 @@ from backend.app.services.llm_connector import generate_json_response, create_pr
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
 from backend.app.services.phase_shifter import phase_shifter
-from backend.app.services.session_manager import SessionManager
+from backend.app.services.session_manager import SessionManager, get_therapy_model
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,9 +55,9 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
         previous_context = ""
 
     logger.info(f"Processing prompt for user {user_id} in {current_phase}: {prompt}")
-
+    phase_intent = get_phase_intent(user_id)
     # Phase shifting decision based on previous context and latest prompt.
-    phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, db, recent_question, max_tokens)
+    phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, phase_intent, db, recent_question, max_tokens)
 
     if phase_decision == "advance":
         next_phase = get_next_phase(current_phase)
@@ -193,6 +193,7 @@ def generate_advance_questions(previous_context: str, prompt: str, current_phase
         f"and is currently dealing with {user_profile.get('current_issue', 'none reported')}. "
         f"Emotional history: {user_profile.get('emotional_history', 'no prior history available')}."
     )
+    phase_intent = get_phase_intent(user_id)
     full_prompt = (
        f"""
         Act as an AI therapist guiding a client through a structured session. Your task is to generate one empathetic advance question that bridges the client’s current emotional state to the next phase, addresses any potential resistance or ambiguity, and reinforces the session's objectives.
@@ -261,6 +262,8 @@ def generate_follow_up_questions(previous_context: str, prompt: str, current_pha
         f"and is currently dealing with {user_profile.get('current_issue', 'none reported')}. "
         f"Emotional history: {user_profile.get('emotional_history', 'no prior history available')}."
     )
+    phase_intent = get_phase_intent(user_id)
+
     full_prompt = (
         f"""
         Act as an AI therapist engaged in a structured session with a client. Your task is to generate one empathetic follow-up question that not only deepens the client's self-reflection but also addresses any possible resistance or ambiguity in their responses. Additionally, if the user asks any questions, provide a thoughtful and supportive answer. Ensure that your inquiry is aligned with the current phase's goals, helps clarify the client's emotions, and checks for any signs of distress.
@@ -312,4 +315,22 @@ def detokenize_text(tokens):
 
 def truncate_to_max_tokens(tokens, max_tokens):
     return tokens[:max_tokens]
+
+def get_phase_intent(user_id):
+    """
+    Retrieves the phase intent dict for the user's current therapy model.
+    """
+    # 1. Fetch active sessions
+    sessions = session_manager.list_active_sessions_by_user(user_id)
+    if not sessions:
+        return None
+
+    # 2. Get the latest session’s data
+    latest_session = sessions[0]
+
+    # 3. Determine the chosen model via our LLM classifier
+    classification = latest_session['therapy_model']
+
+    # 4. Return the matching phase_intent (or None if unrecognized)
+    return phase_intent.get(classification, None)
 

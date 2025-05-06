@@ -54,10 +54,14 @@ app.post('/text-to-speech', async (req, res) => {
     const [response] = await ttsClient.synthesizeSpeech(request);
     const path = require('path');
     const outputPath = path.join(__dirname, 'output.mp3');
-    console.log(outputPath);
     await util.promisify(fs.writeFile)(outputPath, response.audioContent, 'binary');
-    res.sendFile(outputPath, { root: __dirname }, () => {
-      fs.unlinkSync(outputPath);
+    console.log('Sending file:', outputPath);
+    res.sendFile("output.mp3", { root: __dirname }, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+      } else {
+        console.log('File sent successfully');
+      }
     });
   } catch (error) {
     console.error('TTS Error:', error);

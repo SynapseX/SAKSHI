@@ -44,6 +44,11 @@
     <div class="flex flex-col items-center space-y-3">
       <div class="flex items-center space-x-2">
         <!-- ✅ Updated Mic Toggle Button -->
+
+        <button class="icon_btn" matTooltip="Toggle Mic" (click)="initializeAssistant()">
+          <mat-icon>call_start</mat-icon>
+        </button>
+
         <button class="icon_btn" matTooltip="Toggle Mic" (click)="toggleMic()">
           <mat-icon>{{ isRecording ? "mic" : "mic_off" }}</mat-icon>
         </button>
@@ -109,3 +114,6 @@
     <button mat-menu-item>About</button>
   </mat-menu>
 </div>
+
+<audio #remoteAudio autoplay></audio>
+

@@ -7,6 +7,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import {google} from "@google-cloud/text-to-speech/build/protos/protos";
 import AudioEncoding = google.cloud.texttospeech.v1.AudioEncoding;
+import {AudioResponse} from "@/_models/Chat";
 
 @Injectable({
   providedIn: 'root'

@@ -41,7 +41,7 @@ export class ConversationComponent implements OnInit {
         time: new Date().toLocaleTimeString(),
       });
       this.promptForm.reset();
-      this.chatSrv.getTherapistResponse(current_prompt, previous_prompt);
+      this.chatSrv.addTherapistResponseToChat(current_prompt, previous_prompt);
     }
   }
 }

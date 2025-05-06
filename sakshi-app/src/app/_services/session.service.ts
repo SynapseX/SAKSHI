@@ -27,6 +27,7 @@ export class SessionService {
   createSession(session: Session) {
     const formData = {
       uid: this.authSrv.getUser()?.uid,
+      name: session.name,
       duration: session.sessionDuration,
       treatment_goals: session.treatmentGoals,
       client_expectations: session.clientExpectations,

@@ -3,7 +3,6 @@ import random
 from datetime import datetime
 
 from backend.app.services.llm_connector import generate_json_response
-from backend.app.services.phase_intent import phase_intent
 
 
 def analyze_user_situation(prompt: str) -> dict:
@@ -32,7 +31,7 @@ def analyze_user_situation(prompt: str) -> dict:
         }
 
 
-def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phase: str, user_id: str, db, recent_question: str,
+def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phase: str, user_id: str, phase_intent,  db,  recent_question: str,
                   max_tokens: int = 4096) -> (str, dict):
     """
     Uses LLM analysis of the recent prompt to extract the user's situation and decide whether the current
@@ -46,7 +45,6 @@ def phase_shifter(session, prev_conversation_log: str, prompt: str, current_phas
     """
     # Analyze the user's situation from the latest prompt.
     user_situation = analyze_user_situation(prompt)
-
     # Define detailed phase intents and clear end goals.
 
 
