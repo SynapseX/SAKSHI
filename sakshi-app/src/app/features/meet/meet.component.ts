@@ -9,6 +9,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { MeetAvatar } from '@/features/meet/meet-avatar/avatar.component';
+import { AuthService } from '@/_services/auth.service';
+import { Subscription } from 'rxjs';
+import { User } from '@/_models/User';
 
 const MatImports = [
   MatButtonModule,
@@ -28,6 +31,8 @@ const MatImports = [
   styleUrl: './meet.component.scss',
 })
 export class MeetComponent implements OnInit, OnDestroy {
+  authSub!: Subscription;
+  currentUser!: User;
   isRecording: boolean = false;
   transcription: string = '';
   timeLeft: number = 30;
@@ -35,12 +40,19 @@ export class MeetComponent implements OnInit, OnDestroy {
   private recordTimer: any = null;
   private autoRestart: boolean = true;
 
-  constructor(private snackBar: MatSnackBar) {}
+  constructor(private authSrv: AuthService, private snackBar: MatSnackBar) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.authSub = this.authSrv.currentUser$.subscribe({
+      next: (u) => {
+        if (u) this.currentUser = u;
+      },
+    });
+  }
 
   ngOnDestroy(): void {
     this.stopRecording();
+    this.authSub.unsubscribe();
   }
 
   toggleMic(): void {
