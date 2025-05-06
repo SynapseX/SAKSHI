@@ -40,6 +40,7 @@ export class MeetComponent implements OnInit, OnDestroy {
   isRecording: boolean = false;
   transcription: string = '';
   timeLeft: number = 30;
+  protected initializeAssistantModal = true;
   private recognitionInstance: any = null;
   private recordTimer: any = null;
   private autoRestart: boolean = true;
@@ -49,6 +50,7 @@ export class MeetComponent implements OnInit, OnDestroy {
   constructor(private authSrv: AuthService, private snackBar: MatSnackBar,private chatSrv: ChatService, private tts: TextToSpeechService, private sessionService: SessionService) {}
 
   ngOnInit(): void {
+    this.initializeAssistantModal = true;
     this.authSub = this.authSrv.currentUser$.subscribe({
       next: (u) => {
         if (u) this.currentUser = u;
@@ -80,6 +82,8 @@ export class MeetComponent implements OnInit, OnDestroy {
   }
 
   initializeAssistant(): void {
+    this.initializeAssistantModal = false;
+    setTimeout(() => {}, 2000);
     this.audioUnlocked = true;
     this.unlockAudioPlayback();
     this.getFirstPromptSpoken();

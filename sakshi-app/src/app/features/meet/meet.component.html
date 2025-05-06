@@ -1,3 +1,27 @@
+<div
+  class="fixed inset-0 bg-gray-100 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50" *ngIf="initializeAssistantModal"
+>
+  <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+    <h2 class="text-lg font-semibold mb-4 text-center">Start Meeting</h2>
+    <p class="text-sm text-gray-600 mb-6 text-center">
+      Are you ready to start the meeting?
+    </p>
+    <div class="flex justify-between">
+      <button
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        (click)="initializeAssistant()"
+      >
+        Start
+      </button>
+      <button
+        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="fixed z-40 top-0 left-0 w-full h-full bg-gray-100 flex flex-col">
   <!-- Header -->
   <div class="py-6 px-4 bg-gray-200">
@@ -44,10 +68,6 @@
     <div class="flex flex-col items-center space-y-3">
       <div class="flex items-center space-x-2">
         <!-- ✅ Updated Mic Toggle Button -->
-
-        <button class="icon_btn" matTooltip="Toggle Mic" (click)="initializeAssistant()">
-          <mat-icon>call_start</mat-icon>
-        </button>
 
         <button class="icon_btn" matTooltip="Toggle Mic" (click)="toggleMic()">
           <mat-icon>{{ isRecording ? "mic" : "mic_off" }}</mat-icon>
