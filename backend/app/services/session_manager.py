@@ -213,7 +213,7 @@ class SessionManager:
             "duration": request.duration,
             "created_at": created_at,
             "expires_at": expires_at,
-            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent.get("narrative_solution_focused_phase_intent")),
+            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent.get("Narrative & Solution-Focused", "Narrative & Solution-Focused")),
             "status": "active",
             "treatment_goals": request.treatment_goals,
             "client_expectations": request.client_expectations,
