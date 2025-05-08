@@ -7,10 +7,10 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {ChatService} from "@/_services/chat.service";
-import {Chat, PromptResponse} from "@/_models/Chat";
-import {TextToSpeechService} from "@/speech-module/text-to-speech.service";
-import {SessionService} from "@/_services/session.service";
+import { ChatService } from '@/_services/chat.service';
+import { Chat, PromptResponse } from '@/_models/Chat';
+import { TextToSpeechService } from '@/speech-module/text-to-speech.service';
+import { SessionService } from '@/_services/session.service';
 
 import { MeetAvatar } from '@/features/meet/meet-avatar/avatar.component';
 import { AuthService } from '@/_services/auth.service';
@@ -47,7 +47,13 @@ export class MeetComponent implements OnInit, OnDestroy {
   private previous_prompt: string = '';
   private audioUnlocked = false;
 
-  constructor(private authSrv: AuthService, private snackBar: MatSnackBar,private chatSrv: ChatService, private tts: TextToSpeechService, private sessionService: SessionService) {}
+  constructor(
+    private authSrv: AuthService,
+    private snackBar: MatSnackBar,
+    private chatSrv: ChatService,
+    private tts: TextToSpeechService,
+    private sessionService: SessionService
+  ) {}
 
   ngOnInit(): void {
     this.initializeAssistantModal = true;
@@ -56,6 +62,11 @@ export class MeetComponent implements OnInit, OnDestroy {
         if (u) this.currentUser = u;
       },
     });
+  }
+
+  loadDefaultImage(e: any) {
+    e.target.src =
+      'https://png.pngtree.com/element_our/png/20181206/users-vector-icon-png_260862.jpg';
   }
 
   ngOnDestroy(): void {
@@ -72,7 +83,6 @@ export class MeetComponent implements OnInit, OnDestroy {
         const response = responses[responses.length - 1];
 
         this.synthesizeTTS(response.therapist_response);
-
       }
     });
   }
@@ -88,7 +98,6 @@ export class MeetComponent implements OnInit, OnDestroy {
     this.unlockAudioPlayback();
     this.getFirstPromptSpoken();
   }
-
 
   startRecording(): void {
     const SpeechRecognition =
@@ -171,18 +180,20 @@ export class MeetComponent implements OnInit, OnDestroy {
     this.isRecording = false;
     this.timeLeft = 30;
 
-    this.chatSrv.getTherapistResponse(this.transcription, this.previous_prompt).subscribe({
-      next: (response: PromptResponse) => {
-        this.synthesizeTTS(response.follow_up_question);
-      },
-      error: (err) => {
-        console.error('Error fetching therapist response:', err);
-      },
-      complete: () => {
-        this.previous_prompt = this.transcription;
-        this.transcription = '';
-      }
-    });
+    this.chatSrv
+      .getTherapistResponse(this.transcription, this.previous_prompt)
+      .subscribe({
+        next: (response: PromptResponse) => {
+          this.synthesizeTTS(response.follow_up_question);
+        },
+        error: (err) => {
+          console.error('Error fetching therapist response:', err);
+        },
+        complete: () => {
+          this.previous_prompt = this.transcription;
+          this.transcription = '';
+        },
+      });
   }
 
   private synthesizeTTS(request_text: string) {
@@ -190,9 +201,10 @@ export class MeetComponent implements OnInit, OnDestroy {
       next: (audioBlob: Blob) => {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        audio.play()
-          .then(() => console.log("Audio is playing"))
-          .catch(e => console.error('Error playing audio:', e));
+        audio
+          .play()
+          .then(() => console.log('Audio is playing'))
+          .catch((e) => console.error('Error playing audio:', e));
       },
       error: (err) => {
         console.error('Error synthesizing speech:', err);
@@ -200,7 +212,7 @@ export class MeetComponent implements OnInit, OnDestroy {
       complete: () => {
         console.log('Audio playback completed');
         // TODO: Add transcription logic here
-      }
+      },
     });
   }
 
@@ -214,12 +226,13 @@ export class MeetComponent implements OnInit, OnDestroy {
   }
 
   private unlockAudioPlayback(): void {
-    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    const AudioContextClass =
+      window.AudioContext || (window as any).webkitAudioContext;
     const context = new AudioContextClass();
 
     if (context.state === 'suspended') {
       context.resume().then(() => {
-        console.log("Audio context unlocked");
+        console.log('Audio context unlocked');
       });
     }
 
@@ -229,7 +242,4 @@ export class MeetComponent implements OnInit, OnDestroy {
     source.connect(context.destination);
     source.start(0);
   }
-
-
-
 }

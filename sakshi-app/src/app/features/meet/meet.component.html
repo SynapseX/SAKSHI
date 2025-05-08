@@ -1,5 +1,6 @@
 <div
-  class="fixed inset-0 bg-gray-100 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50" *ngIf="initializeAssistantModal"
+  class="fixed inset-0 bg-gray-100 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+  *ngIf="initializeAssistantModal"
 >
   <div class="bg-white rounded-lg shadow-lg p-6 w-80">
     <h2 class="text-lg font-semibold mb-4 text-center">Start Meeting</h2>
@@ -13,9 +14,7 @@
       >
         Start
       </button>
-      <button
-        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-      >
+      <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
         Cancel
       </button>
     </div>
@@ -48,11 +47,9 @@
           {{ transcription }}
         </div>
         <app-meet-avatar
-          [imageUrl]="
-            currentUser.photoURL ||
-            'https://png.pngtree.com/element_our/png/20181206/users-vector-icon-png_260862.jpg'
-          "
+          [imageUrl]="currentUser.photoURL || ''"
           [isTalking]="isRecording"
+          (error)="loadDefaultImage($event)"
         ></app-meet-avatar>
       </div>
     </div>
@@ -136,4 +133,3 @@
 </div>
 
 <audio #remoteAudio autoplay></audio>
-
