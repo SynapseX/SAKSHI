@@ -4,7 +4,7 @@ import uuid
 import logging
 
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from starlette.middleware.cors import CORSMiddleware
 
 from backend.app.models.models import UserProfile, SessionCreateRequest
@@ -37,14 +37,62 @@ class PromptRequest(BaseModel):
     session_id: str
     previous_prompt: str
 
-@app.post("/api/create_profile")
+
+@app.post("/api/user")
 async def create_profile(profile: UserProfile):
-    profile.id = str(uuid.uuid4())
-    logger.info(f"Creating profile for user: {profile.name}")
-    result = db['users'].insert_one(profile.dict(by_alias=True))
-    new_user = db['users'].find_one({"_id": profile.id})
+    # Check for existing user by email or username
+    existing_user = db['users'].find_one({
+        "$or": [
+            {"email": profile.email},
+            {"username": profile.username}
+        ]
+    })
+
+    if existing_user:
+        logger.warning(f"User already exists with email: {profile.email} or username: {profile.username}")
+        raise HTTPException(status_code=400, detail="User with this email or username already exists")
+
+    profile_dict = profile.dict(by_alias=True)
+    db['users'].insert_one(profile_dict)
+    new_user = db['users'].find_one({"_id": profile_dict["_id"]})
+
     return {"message": "Profile created", "user": new_user}
 
+
+@app.get("/api/user")
+async def get_user_by_email(email: str = Query(...)):
+    user = db['users'].find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"user": user}
+
+
+# Optional: Get all users
+@app.get("/api/users")
+async def get_all_users():
+    users = list(db['users'].find())
+    return {"users": users}
+
+
+# Optional: Update user by UID
+@app.put("/api/user/{uid}")
+async def update_user(uid: str, updated_profile: UserProfile):
+    result = db['users'].update_one(
+        {"_id": uid},
+        {"$set": updated_profile.dict(by_alias=True)}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "Profile updated"}
+
+
+# Optional: Delete user by UID
+@app.delete("/api/user/{uid}")
+async def delete_user(uid: str):
+    result = db['users'].delete_one({"_id": uid})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted"}
 
 @app.post("/api/prompt")
 async def handle_prompt(request: PromptRequest):
