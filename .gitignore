@@ -206,3 +206,6 @@ typings/
 # System files
 .DS_Store
 Thumbs.db
+
+**/server/*.json
+**/server/*.mp3
