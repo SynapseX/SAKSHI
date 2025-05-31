@@ -12,6 +12,7 @@ class SessionWatcher:
 
 
     def watch_sessions(self):
+        sessions_cache = None
         while True:
             # Add your session watching logic here
             for session in self.sessions:
@@ -24,7 +25,9 @@ class SessionWatcher:
                         self.session_manager.completed_session(session['session_id'])
                         self.sessions.remove(session)
                         print(f"Session {session['session_id']} has been marked as completed and is removed.")
-            print("Watching sessions:", self.sessions)
+            if sessions_cache != self.sessions:
+                print("Watching sessions:", self.sessions)
+                sessions_cache = self.sessions
             time.sleep(5)  # Sleep for 5 seconds before checking again
 
     def add_session(self, session):
