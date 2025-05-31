@@ -18,16 +18,16 @@
       </div>
       }
     </div>
+    @if (otherSessions && otherSessions.length > 0) {
     <div class="py-6 px-2 md:px-6 border rounded">
       <h3 class="mb-3 font-semibold text-lg">Previous Sessions</h3>
-      @if (otherSessions && otherSessions.length > 0) {
       <!--  -->
       @for (sess of otherSessions; track $index) {
       <app-session-card [session]="sess"></app-session-card>
       }
       <!--  -->
-      }
     </div>
+    }
   </div>
   }
 </div>
