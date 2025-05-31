@@ -99,6 +99,11 @@ async def handle_prompt(request: PromptRequest):
     # Validate that the user exists
     logger.info(f"Processing prompt for user: {request.user_id}")
     try:
+        session = db['sessions'].find_one({"_id": request.session_id})
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if session['status'] != 'active':
+           session_manager.resume_session(session_id= request.session_id)
         user = db['users'].find_one({"_id": request.user_id})
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid user ID format")

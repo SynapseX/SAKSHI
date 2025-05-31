@@ -1,4 +1,5 @@
 # backend/services/conversation_service.py
+import asyncio
 import json
 import random
 from datetime import datetime
@@ -36,7 +37,7 @@ def get_next_phase(current_phase: str) -> str:
         if idx < len(PHASE_SEQUENCE) - 1:
             return PHASE_SEQUENCE[idx + 1]
     # If not found or already last, return current_phase unchanged.
-    return current_phase
+    return current_phase, [idx + 1]
 
 
 async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent_question, max_tokens: int = 4096):
@@ -60,7 +61,8 @@ async def process_user_prompt(session_id: str, user_id: str, prompt: str, recent
     phase_decision, user_situation = phase_shifter(session, previous_context, prompt, current_phase, user_id, phase_intent, db, recent_question, max_tokens)
 
     if phase_decision == "advance":
-        next_phase = get_next_phase(current_phase)
+        next_phase, next_phase_index = get_next_phase(current_phase)
+        asyncio.create_task(session_manager.update_session_phase(session_id, next_phase_index))
         advance_questions = generate_advance_questions(previous_context, prompt, current_phase, user_id)
 
         # Update current_phase to next_phase in the log
