@@ -61,10 +61,14 @@ async def create_profile(profile: UserProfile):
 
 @app.get("/api/user")
 async def get_user_by_email(email: str = Query(...)):
-    user = db['users'].find_one({"email": email})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"user": user}
+    try:
+        user = db['users'].find_one({"email": email})
+        if not user:
+            return {"user": None}
+        return {"user": user}
+    except Exception as e:
+        logger.error(f"Error retrieving user by email: {email}, Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # Optional: Get all users
