@@ -5,9 +5,17 @@ from typing import Optional, Dict, List
 
 
 class UserProfile(BaseModel):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+    uid: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str
-    age: Optional[int] = None
+    email: str
+    username: Optional[str] = None
+    phone_number: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    gender: Optional[str] = None
+    account_creation_date: Optional[str] = None
+    last_login_date: Optional[str] = None
+    language: Optional[str] = None
+    time_zone: Optional[str] = None
 
     class Config:
         allow_population_by_field_name = True
