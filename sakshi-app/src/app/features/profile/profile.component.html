@@ -1,1 +1,63 @@
-<p>profile works!</p>
+<div class="global-wrapper section-wrapper px-4 md:px-12">
+  <h2 class="font-medium text-3xl">My Profile</h2>
+  <hr class="my-4 border-t border-gray-300" />
+  @if (userDetails) {
+  <div>
+    <div class="px-4 sm:px-0 flex items-center">
+      <div>
+        <h3 class="text-base/7 font-semibold text-gray-900">
+          Manage your profile
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm/6 text-gray-500">
+          Personal details and settings
+        </p>
+      </div>
+      <button mat-raised-button class="ml-auto !bg-green-500 !text-white">
+        <mat-icon>edit_square</mat-icon>
+        Update
+      </button>
+    </div>
+    <div class="mt-6">
+      <dl
+        class="divide-y divide-gray-100 rounded-lg px-4 border border-gray-300"
+      >
+        <app-profile-field field_title="Full Name">{{
+          userDetails.name
+        }}</app-profile-field>
+        <app-profile-field field_title="Email Address">{{
+          userDetails.email
+        }}</app-profile-field>
+        <app-profile-field field_title="Age">{{
+          userDetails.age
+        }}</app-profile-field>
+      </dl>
+    </div>
+
+    <app-profile-field field_title="Additional Info">
+      <ul
+        role="list"
+        class="divide-y divide-gray-100 rounded-md border border-gray-300"
+      >
+        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm/6">
+          <div class="flex w-0 flex-1 items-center">
+            <mat-icon class="size-5 shrink-0 text-gray-400">link</mat-icon>
+            <div class="ml-4 flex min-w-0 flex-1 gap-2">
+              <span class="truncate font-medium"
+                >resume_back_end_developer.pdf</span
+              >
+              <span class="shrink-0 text-gray-400">2.4mb</span>
+            </div>
+          </div>
+          <div class="ml-4 shrink-0">
+            <a
+              href="#"
+              class="font-medium text-indigo-600 hover:text-indigo-500"
+              >Download</a
+            >
+          </div>
+        </li>
+      </ul>
+    </app-profile-field>
+  </div>
+  }
+</div>

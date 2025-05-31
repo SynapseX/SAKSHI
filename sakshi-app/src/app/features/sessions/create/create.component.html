@@ -6,8 +6,7 @@
   <div class="h-[1px] bg-gray-200 my-4 overflow-hidden"></div>
   <!--  -->
   <h3 class="text-lg font-extrabold mb-6 text-gray-500">
-    Start a Session with <span class="text-gray-700">SAKSHI</span
-    ><span class="text-green-500">.AI</span>
+    Start a Session with <span class="text-gray-700">SAKSHI</span><span class="text-green-500">.AI</span>
   </h3>
   <form [formGroup]="sessionForm" (ngSubmit)="submitSessionForm()">
     <mat-form-field>
@@ -23,7 +22,7 @@
         <span>Goals and Expectations</span>
         <span
           class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
-          matTooltip="Goals and Expectations"
+          matTooltip="What are your goals and what outcome do you expect from the Session."
           matTooltipPosition="right"
         >
           info
@@ -32,28 +31,12 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
         <mat-form-field class="w-full">
           <mat-label>Treatment and Goals</mat-label>
-          <input
-            matInput
-            name="treatmentGoals"
-            formControlName="treatmentGoals"
-          />
+          <input matInput name="treatmentGoals" formControlName="treatmentGoals" />
         </mat-form-field>
 
         <mat-form-field class="w-full">
           <mat-label>Client Expectations</mat-label>
-          <input
-            matInput
-            name="clientExpectations"
-            formControlName="clientExpectations"
-          />
-        </mat-form-field>
-        <mat-form-field class="w-full">
-          <mat-label>Name</mat-label>
-          <input
-            matInput
-            name="name"
-            formControlName="name"
-          />
+          <input matInput name="clientExpectations" formControlName="clientExpectations" />
         </mat-form-field>
       </div>
     </div>
@@ -63,20 +46,12 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
         <mat-form-field class="w-full">
           <mat-label>Termination Plan</mat-label>
-          <input
-            matInput
-            name="terminationPlan"
-            formControlName="terminationPlan"
-          />
+          <input matInput name="terminationPlan" formControlName="terminationPlan" />
         </mat-form-field>
 
         <mat-form-field class="w-full">
           <mat-label>Review of Progress</mat-label>
-          <input
-            matInput
-            name="reviewOfProgress"
-            formControlName="reviewOfProgress"
-          />
+          <input matInput name="reviewOfProgress" formControlName="reviewOfProgress" />
         </mat-form-field>
 
         <mat-form-field class="w-full">
@@ -118,12 +93,7 @@
         <span class="animate-pulse">Creating Session ...</span>
       </button>
       }@else {
-      <button
-        type="submit"
-        mat-raised-button
-        color="accent"
-        [disabled]="sessionForm.invalid"
-      >
+      <button type="submit" mat-raised-button color="accent" [disabled]="sessionForm.invalid">
         <span> Create Session </span>
       </button>
       }
@@ -131,11 +101,6 @@
   </form>
 </div>
 
-<app-modal
-  actionText="Got It"
-  (onAction)="closeModal()"
-  (onCancel)="closeModal()"
-  [isOpen]="modalState"
->
+<app-modal actionText="Got It" (onAction)="closeModal()" (onCancel)="closeModal()" [isOpen]="modalState">
   <p>Please fill all the necessary details to proceed</p>
 </app-modal>

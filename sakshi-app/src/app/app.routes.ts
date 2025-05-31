@@ -4,7 +4,6 @@ import { HomeComponent } from './features/home/home.component';
 import { AuthComponent } from './features/auth/auth.component';
 import { MeetComponent } from './features/meet/meet.component';
 import { SessionsComponent } from './features/sessions/sessions.component';
-import { ConversationComponent } from './features/conversation/conversation.component';
 import { SessHomeComponent } from './features/sessions/sess-home/sess-home.component';
 import { CreateComponent } from './features/sessions/create/create.component';
 
@@ -47,7 +46,6 @@ export const routes: Routes = [
         component: ProfileComponent,
         title: 'Your Profile | SAKSHI.AI',
       },
-      { path: 'chat', component: ConversationComponent },
       {
         path: 'sessions',
         component: SessionsComponent,

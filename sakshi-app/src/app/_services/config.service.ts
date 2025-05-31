@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ConfigService {
-  private config = (window as any).__env || {};
+  private config = (window as any).b5984ae6676c_public || {};
 
   getAll() {
     return this.config;

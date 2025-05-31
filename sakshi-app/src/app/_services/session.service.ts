@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { BehaviorSubject, map } from 'rxjs';
-import { Session } from '../_models/Session';
+import { BehaviorSubject, map, of } from 'rxjs';
+import { ISessionInput, ISessionOutput } from '../_models/Session';
 import { AuthService } from './auth.service';
 import { ConfigService } from './config.service';
 
@@ -10,7 +10,7 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class SessionService {
-  activeSessionsSource = new BehaviorSubject<Object[]>([]);
+  activeSessionsSource = new BehaviorSubject<ISessionOutput[]>([]);
   activeSessions$ = this.activeSessionsSource.asObservable();
 
   private firstPromptSource = new BehaviorSubject<String>('');
@@ -18,13 +18,10 @@ export class SessionService {
 
   private apiUrl = this.cfgSrv.get('API_BASE_URL');
 
-  constructor(
-    private http: HttpClient,
-    private authSrv: AuthService,
-    private cfgSrv: ConfigService
-  ) {}
+  constructor(private http: HttpClient, private authSrv: AuthService, private cfgSrv: ConfigService) {}
 
-  createSession(session: Session) {
+  createSession(session: ISessionInput) {
+    const url = `${this.apiUrl}/sessions`;
     const formData = {
       uid: this.authSrv.getUser()?.uid,
       name: session.name,
@@ -37,42 +34,59 @@ export class SessionService {
       thank_you_note: session.thankYouNote,
     };
 
-    return this.http.post(`${this.apiUrl}/sessions`, formData).pipe(
+    return this.http.post(url, formData).pipe(
       map((res: any) => {
         const allSessions = [...this.activeSessionsSource.value, res.session];
         this.activeSessionsSource.next(allSessions);
         this.firstPromptSource.next(res.session.first_prompt.first_prompt);
         return res;
-      })
+      }),
     );
   }
 
   getSession(sessionId: string) {
-    return this.http.get(`${this.apiUrl}/sessions/${sessionId}`);
+    const url = `${this.apiUrl}/sessions/${sessionId}`;
+    return this.http.get(url);
+  }
+
+  pauseSession(sessionId: string) {
+    console.log({ sessionId });
+    const url = `${this.apiUrl}/pause_session/${sessionId}`;
+    return this.http.post(url, {});
+  }
+
+  resumeSession(sessionId: string) {
+    const url = `${this.apiUrl}/resume_session/${sessionId}`;
+    return this.http.post(url, {});
   }
 
   terminateSession(sessionId: string) {
-    return this.http
-      .post(`${this.apiUrl}/completed_session/${sessionId}`, {})
-      .pipe(
-        map((res: any) => {
-          const activeSessions = this.activeSessionsSource.value;
-          this.activeSessionsSource.next(
-            activeSessions.filter((s: any) => s.session_id !== sessionId)
-          );
-          return res;
-        })
-      );
-  }
-
-  extendSession(sessionId: string, duration: number) {
-    return this.http.put(
-      `${this.apiUrl}/sessions/${sessionId}?additional_duration=${duration}`,
-      {}
+    const url = `${this.apiUrl}/completed_session/${sessionId}`;
+    return this.http.post(url, {}).pipe(
+      map((res: any) => {
+        const activeSessions = this.activeSessionsSource.value;
+        this.activeSessionsSource.next(activeSessions.filter((s: any) => s.session_id !== sessionId));
+        return res;
+      }),
     );
   }
 
+  extendSession(sessionId: string, duration: number) {
+    const url = `${this.apiUrl}/sessions/${sessionId}/extend?additional_duration=${duration}`;
+
+    if (duration < 5 && duration > 90) return of(new Error('Invalid Duration'));
+
+    return this.http.put(url, {});
+  }
+
+  followupSession(oldSessionId: string) {
+    const url = `${this.apiUrl}/follow_up/${oldSessionId}`;
+
+    return this.http.post(url, {});
+  }
+
   listActiveSessions(uid: string) {
-    return this.http.get(`${this.apiUrl}/sessions/active/${uid}`);
+    const url = `${this.apiUrl}/sessions/active/${uid}`;
+    return this.http.get<{ active_sessions: ISessionOutput[] }>(url);
   }
 }

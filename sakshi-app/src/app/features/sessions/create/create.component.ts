@@ -1,11 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -17,6 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { SessionService } from '@/_services/session.service';
 import { ModalComponent } from '@/components/modal/modal.component';
+import { minutes } from '@/_utils';
+import { AuthService } from '@/_services/auth.service';
 
 @Component({
   selector: 'app-create',
@@ -36,7 +33,7 @@ import { ModalComponent } from '@/components/modal/modal.component';
 })
 export class CreateComponent implements OnInit {
   sessionForm!: FormGroup;
-  minutes = [1, 5, 15, 30, 60];
+  minutes = minutes;
   modalState = false;
 
   isLoading = false;
@@ -45,7 +42,8 @@ export class CreateComponent implements OnInit {
     private fb: FormBuilder,
     private tstSrv: ToastrService,
     private sessSrv: SessionService,
-    private router: Router
+    private router: Router,
+    private authSrv: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -54,7 +52,7 @@ export class CreateComponent implements OnInit {
 
   initSessionForm() {
     return this.fb.group({
-      name: ['', Validators.required],
+      name: [this.authSrv.getUser()?.displayName || '', Validators.required],
       sessionTime: [new Date().toUTCString()],
       sessionDuration: [30, Validators.required],
       treatmentGoals: ['', Validators.required],
@@ -79,6 +77,7 @@ export class CreateComponent implements OnInit {
         localStorage.setItem('session_id', res.session.session_id);
         this.resetSessionForm();
         this.isLoading = false;
+        // TODO: recheck this again for proper meet redirect
         this.router.navigate(['/meet']);
       },
       error: (err) => {

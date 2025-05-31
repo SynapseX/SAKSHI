@@ -15,7 +15,7 @@ export class MeetAvatar {
   @Input() isTalking: boolean = false;
   @Input() size: number = 22;
 
-  get sizeClasses() {
+  get sizeStyle() {
     return {
       width: this.size * 4 + `px`,
       height: this.size * 4 + `px`,

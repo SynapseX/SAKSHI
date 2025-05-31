@@ -221,6 +221,7 @@ class SessionManager:
             "termination_plan": request.termination_plan,
             "review_of_progress": request.review_of_progress,
             "thank_you_note": request.thank_you_note,
+            "current_phase_index": 0,  # Start with the first phase
             "metadata": request.metadata or {}
         }
 
@@ -304,39 +305,85 @@ class SessionManager:
         """
         db['sessions'].update_one({"session_id": session_id}, {"$set": session_data}, upsert=True)
 
-    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent: dict):
+    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent: dict, start_index: int = 0):
         """
-        Calculate the end time for each phase based on the session duration and phase weightage.
+        Calculate the end time for each remaining phase based on the session duration and phase weightage.
 
         Args:
-            start_time (datetime): The start time of the session.
-            duration (int): The total duration of the session in minutes.
+            start_time (datetime): The start time for recalculation.
+            duration (int): The total remaining duration in minutes.
             phase_intent (dict): A dictionary containing phase names and their respective weightages.
+            start_index (int): The index from which to start recalculating phases (default is 0).
 
         Returns:
-            dict: A dictionary with phase names as keys and their calculated end times as values.
+            dict: A dictionary with phase names as keys and their recalculated end times as values.
         """
+        phase_keys = list(phase_intent.keys())
+        remaining_phase_keys = phase_keys[start_index:]
         total_weight = sum(
-            phase['weightage'] for phase in phase_intent.values() if isinstance(phase, dict) and 'weightage' in phase)
+            phase_intent[key]['weightage']
+            for key in remaining_phase_keys
+            if isinstance(phase_intent[key], dict) and 'weightage' in phase_intent[key]
+        )
         phase_end_times = {}
         current_time = start_time
 
-        for phase, details in phase_intent.items():
+        for key in remaining_phase_keys:
+            details = phase_intent[key]
             if isinstance(details, dict) and 'weightage' in details:
                 phase_duration = (details['weightage'] / total_weight) * duration
                 phase_end_time = current_time + timedelta(minutes=phase_duration)
-                phase_end_times[phase] = phase_end_time
+                phase_end_times[key] = phase_end_time
                 current_time = phase_end_time
 
         return phase_end_times
 
-        # Pause session
-    def pause_session(self, session_id: str):
+    # Resume session
+    def resume_session(self, session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
 
         if not session:
-            return {"error": "Session not found."}
+            return {"error": "session not found."}
 
+        if session["status"] != "paused":
+            return {"error": "only paused sessions can be resumed."}
+
+        # calculate new expiry time
+        current_time = datetime.now(datetime.utc)
+        start_time = session.get("resumed_at", session.get("created_at"))
+        diff = session["paused_at"] - start_time
+        diff_minutes = int(diff.total_seconds() // 60)
+        new_remaining = session["remaining_duration"] + diff_minutes
+        new_expires_at = current_time + timedelta(minutes=new_remaining)
+
+        # Determine starting phase index; if stored in session, use it, otherwise start from 0
+        start_phase_index = session.get("current_phase_index", 0)
+        phase_intent_for_model = phase_intent.get(
+            session.get("therapy_model", "Narrative & Solution-Focused"), {}
+        )
+        new_phase_end_times = self.calculate_phase_end_times(
+            current_time, new_remaining, phase_intent_for_model, start_phase_index
+        )
+
+        db['sessions'].update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "status": "active",
+                "expires_at": new_expires_at,
+                "resumed_at": current_time,
+                "phase_end_times": new_phase_end_times},
+             "$unset": {"paused_at": "", "remaining_duration": ""}}
+        )
+
+        return {"message": "session resumed successfully.", "session_id": session_id,
+                "new_expires_at": new_expires_at}
+
+        # Pause session
+
+    def pause_session(self, session_id: str):
+        session = db['sessions'].find_one({"session_id": session_id})
+        if not session:
+            return {"error": "Session not found."}
         if session["status"] != "active":
             return {"error": "Only active sessions can be paused."}
 
@@ -344,38 +391,18 @@ class SessionManager:
         current_time = datetime.now(datetime.UTC)
         remaining_duration = (session["expires_at"] - current_time).total_seconds() // 60  # Convert to minutes
 
-        # Update session status
+        # Update session status and save current_phase_index
         db['sessions'].update_one(
             {"session_id": session_id},
-            {"$set": {"status": "paused", "paused_at": current_time, "remaining_duration": remaining_duration}}
+            {"$set": {
+                "status": "paused",
+                "paused_at": current_time,
+                "remaining_duration": remaining_duration,
+                "current_phase_index": session.get("current_phase_index", 0)
+            }}
         )
 
         return {"message": "Session paused successfully.", "session_id": session_id}
-
-    # Resume session
-    def resume_session(self, session_id: str):
-        session = db['sessions'].find_one({"session_id": session_id})
-
-        if not session:
-            return {"error": "Session not found."}
-
-        if session["status"] != "paused":
-            return {"error": "Only paused sessions can be resumed."}
-
-        # Calculate new expiry time
-        current_time = datetime.now(datetime.UTC)
-        new_expires_at = current_time + timedelta(minutes=session["remaining_duration"])
-
-        # Update session status
-        db['sessions'].update_one(
-            {"session_id": session_id},
-            {"$set": {"status": "active", "expires_at": new_expires_at},
-             "$unset": {"paused_at": "", "remaining_duration": ""}}
-        )
-
-        return {"message": "Session resumed successfully.", "session_id": session_id,
-                "new_expires_at": new_expires_at}
-
     def generate_session_notes(self, old_session_id: str) -> dict:
         old_session = self.db['sessions'].find_one({"_id": old_session_id})
         if not old_session:
@@ -553,3 +580,18 @@ class SessionManager:
         )
 
         return {"message": "Session completed successfully.", "session_id": session_id}
+
+    def update_session_phase(self, session, new_phase_index: int):
+        """
+        Updates the session's current phase index and recalculates phase end times.
+        """
+        if new_phase_index < 0:
+            raise ValueError("Phase index cannot be negative.")
+
+        # Update the session in the database
+        db['sessions'].update_one(
+            {"session_id": session["session_id"]},
+            {"$set": {
+                "current_phase_index": new_phase_index,
+            }}
+        )

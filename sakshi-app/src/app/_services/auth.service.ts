@@ -13,12 +13,15 @@ import {
 import { User } from '../_models/User';
 import { ConfigService } from './config.service';
 import { ToastrService } from 'ngx-toastr';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { IGNORED_STATUSES } from '@/_interceptors/error.interceptor';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly USER_KEY = '__AUTH__';
+  private readonly STORE_USER_KEY = '__AUTH__';
+  private readonly BASE_API_URL = this.cfgSrv.get('API_BASE_URL');
 
   private app!: FirebaseApp;
   private analytics!: Analytics;
@@ -29,7 +32,8 @@ export class AuthService {
   constructor(
     private cfgSrv: ConfigService,
     private router: Router,
-    private tstSrv: ToastrService
+    private tstSrv: ToastrService,
+    private http: HttpClient
   ) {
     const firebaseConfig = {
       apiKey: cfgSrv.get('API_KEY'),
@@ -54,7 +58,7 @@ export class AuthService {
         })
       ); // Base64 encode
 
-      localStorage.setItem(this.USER_KEY, encodedUser);
+      localStorage.setItem(this.STORE_USER_KEY, encodedUser);
     } else {
       this.clearUser();
     }
@@ -62,7 +66,7 @@ export class AuthService {
   }
 
   getUser(): User | null {
-    const encodedUser = localStorage.getItem(this.USER_KEY);
+    const encodedUser = localStorage.getItem(this.STORE_USER_KEY);
     if (encodedUser) {
       try {
         return JSON.parse(atob(encodedUser));
@@ -76,7 +80,7 @@ export class AuthService {
   }
 
   clearUser(): void {
-    localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.STORE_USER_KEY);
   }
 
   googleSignIn() {
@@ -93,16 +97,39 @@ export class AuthService {
             uid: result.user.uid,
             accessToken: token,
           };
-          this.setUser(user);
+
+          this.getDBUser(user.email || '').subscribe({
+            next: (u) => {
+              // TODO: Match the uid from GoogleAuth, with UID from DB
+              if (u) this.setUser(user);
+            },
+            error: (err) => {
+              if (err.status === 404) {
+                this.addDBUser(user).subscribe({
+                  next: () => {
+                    this.setUser(user);
+                  },
+                });
+              } else console.error('Could not sign in. Try Later', err);
+            },
+          });
         })
         .catch((error) => {
-          // const errorCode = error.code;
-          // const errorMessage = error.message;
-          // const email = error.customData.email;
-          // const credential = GoogleAuthProvider.credentialFromError(error);
           this.tstSrv.error('Could not sign in. Try Later');
         });
     });
+  }
+
+  getDBUser(email: string) {
+    const url = `${this.BASE_API_URL}/user?email=${email}`;
+    return this.http.get(url, {
+      context: new HttpContext().set(IGNORED_STATUSES, [404]),
+    });
+  }
+
+  addDBUser(user: User | null) {
+    const url = `${this.BASE_API_URL}/user`;
+    return this.http.post(url, user);
   }
 
   googleSignOut() {

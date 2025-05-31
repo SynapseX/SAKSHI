@@ -10,7 +10,6 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './auth.component.html',
 })
 export class AuthComponent implements OnInit, OnDestroy {
-  to!: boolean;
   signinSub!: Subscription;
 
   constructor(
@@ -20,13 +19,14 @@ export class AuthComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.route.snapshot.paramMap.get('to');
+    const forwardUrl: string = this.route.snapshot.data['to'];
 
-    this.signinSub = this.authSrv.currentUser$.subscribe((user) => {
-      if (user && this.router.url == '/auth') {
-        this.router.navigate(['/']);
-        console.log('Signed In');
-      }
+    this.signinSub = this.authSrv.currentUser$.subscribe({
+      next: (user) => {
+        if (user && this.router.url.startsWith('/auth')) {
+          this.router.navigate(forwardUrl ? forwardUrl.split('/') : ['/']);
+        }
+      },
     });
   }
 

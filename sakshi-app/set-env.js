@@ -5,12 +5,12 @@ const envFile = process.argv[2] === "prod" ? ".env.prod" : ".env";
 const envConfig = dotenv.parse(fs.readFileSync(envFile));
 
 const envObject = Object.entries(envConfig)
-  .map(([key, value]) => `  window.__env.${key} = '${value}';`)
+  .map(([key, value]) => `  window.b5984ae6676c_public.${key} = '${value}';`)
   .join("\n");
 
 const output = `
 (function(window) {
-window.__env = window.__env || {};
+window.b5984ae6676c_public = window.b5984ae6676c_public || {};
 
 ${envObject}
 })(this);
