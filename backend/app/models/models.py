@@ -1,21 +1,22 @@
 # backend/models/user_model.py
 import uuid
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, List
+from typing import Optional, List
+from datetime import datetime, timezone
 
 
 class UserProfile(BaseModel):
-    uid: str = Field(default_factory=uuid.uuid4, alias="_id")
+    uid: str = Field(..., alias="_id")
     name: str
     email: str
-    username: str
-    phone_number: str
-    date_of_birth: str
-    gender: str
-    account_creation_date: str
-    last_login_date: str
-    language: str
-    time_zone: str
+    username: Optional[str] = ""
+    phone_number: Optional[str] = ""
+    date_of_birth: Optional[str] = ""
+    gender: Optional[str] = ""
+    account_creation_date: Optional[str] = Field(default=datetime.now(timezone.utc))
+    last_login_date: Optional[str] = ""
+    language: Optional[str] = Field(default="en")
+    time_zone: Optional[str] = Field(default=datetime.now().astimezone().tzname)
 
     class Config:
         allow_population_by_field_name = True
@@ -23,14 +24,16 @@ class UserProfile(BaseModel):
             "example": {
                 "_id": "066de609-b04a-4b30-b46c-32537c7f1f6e",
                 "name": "Don Quixote",
-                "age": 11
+                "age": 11,
             }
         }
+
 
 class UserProfileDB(BaseModel):
     _id: str
     name: str
     age: Optional[int] = None
+
 
 class SessionCreateRequest(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
@@ -44,6 +47,7 @@ class SessionCreateRequest(BaseModel):
     review_of_progress: str
     thank_you_note: str
     metadata: dict = {}  # Optional additional info
+
 
 class MentalStatus(BaseModel):
     appearance: Optional[str] = ""
@@ -118,9 +122,15 @@ class PlanForNextSession(BaseModel):
 class TherapySessionNote(BaseModel):
     basic_information: BasicInformation = BasicInformation()
     client_subjective_report: ClientSubjectiveReport = ClientSubjectiveReport()
-    therapist_objective_observations: TherapistObjectiveObservations = TherapistObjectiveObservations()
-    assessment_and_clinical_impression: AssessmentAndClinicalImpression = AssessmentAndClinicalImpression()
+    therapist_objective_observations: TherapistObjectiveObservations = (
+        TherapistObjectiveObservations()
+    )
+    assessment_and_clinical_impression: AssessmentAndClinicalImpression = (
+        AssessmentAndClinicalImpression()
+    )
     risk_assessment: RiskAssessment = RiskAssessment()
     interventions: List[Intervention] = []
-    client_response_to_interventions: ClientResponseToInterventions = ClientResponseToInterventions()
+    client_response_to_interventions: ClientResponseToInterventions = (
+        ClientResponseToInterventions()
+    )
     plan_for_next_session: PlanForNextSession = PlanForNextSession()

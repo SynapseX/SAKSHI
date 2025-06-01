@@ -3,14 +3,8 @@ import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { type FirebaseApp, initializeApp } from 'firebase/app';
 import { type Analytics, getAnalytics } from 'firebase/analytics';
-import {
-  GoogleAuthProvider,
-  getAuth,
-  signInWithPopup,
-  setPersistence,
-  browserLocalPersistence,
-} from 'firebase/auth';
-import { User } from '../_models/User';
+import { GoogleAuthProvider, getAuth, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { IUserOutput, User, UserOutput } from '../_models/User';
 import { ConfigService } from './config.service';
 import { ToastrService } from 'ngx-toastr';
 import { HttpClient, HttpContext } from '@angular/common/http';
@@ -33,7 +27,7 @@ export class AuthService {
     private cfgSrv: ConfigService,
     private router: Router,
     private tstSrv: ToastrService,
-    private http: HttpClient
+    private http: HttpClient,
   ) {
     const firebaseConfig = {
       apiKey: cfgSrv.get('API_KEY'),
@@ -55,7 +49,7 @@ export class AuthService {
           displayName: user.displayName,
           email: user.email,
           uid: user.uid,
-        })
+        }),
       ); // Base64 encode
 
       localStorage.setItem(this.STORE_USER_KEY, encodedUser);
@@ -99,18 +93,31 @@ export class AuthService {
           };
 
           this.getDBUser(user.email || '').subscribe({
-            next: (u) => {
+            next: (u: any) => {
               // TODO: Match the uid from GoogleAuth, with UID from DB
-              if (u) this.setUser(user);
-            },
-            error: (err) => {
-              if (err.status === 404) {
-                this.addDBUser(user).subscribe({
-                  next: () => {
+              console.log(u, user);
+
+              if (u.user) this.setUser(user);
+              else {
+                console.log('Trying to add user');
+
+                const new_user = new UserOutput({
+                  _id: user.uid,
+                  email: user.email!,
+                  name: user.displayName!,
+                });
+
+                this.addDBUser(new_user).subscribe({
+                  next: (res) => {
+                    console.log({ res });
+
                     this.setUser(user);
                   },
                 });
-              } else console.error('Could not sign in. Try Later', err);
+              }
+            },
+            error: (err) => {
+              console.error('Could not sign in. Try Later', err);
             },
           });
         })
@@ -127,7 +134,7 @@ export class AuthService {
     });
   }
 
-  addDBUser(user: User | null) {
+  addDBUser(user: IUserOutput | null) {
     const url = `${this.BASE_API_URL}/user`;
     return this.http.post(url, user);
   }
