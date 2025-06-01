@@ -1,7 +1,6 @@
 import json
 import uuid
-import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from backend.app.models.models import SessionCreateRequest
 from backend.app.services.llm_connector import generate_json_response
@@ -203,7 +202,7 @@ class SessionManager:
 
     def create_session(self, request):
         session_id = str(uuid.uuid4())
-        created_at = datetime.datetime.now(datetime.UTC)
+        created_at = datetime.now()
         expires_at = self._calculate_expiry(created_at, request.duration)
 
         # Future-proof session structure
@@ -243,8 +242,8 @@ class SessionManager:
 
         return session_data
 
-    @staticmethod
-    def get_session(session_id: str):
+    # noinspection PyMethodMayBeStatic
+    def get_session(self, session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
         return session
 
@@ -258,8 +257,8 @@ class SessionManager:
             return session
         return None
 
-    @staticmethod
-    def terminate_session(session_id: str):
+    # noinspection PyMethodMayBeStatic
+    def terminate_session(self, session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
         if session:
             db['sessions'].update_one({"session_id": session_id}, {"$set": {"status": "terminated"}})
@@ -267,23 +266,23 @@ class SessionManager:
             return session
         return None
 
-    @staticmethod
-    def list_active_sessions():
+    # noinspection PyMethodMayBeStatic
+    def list_active_sessions(self):
         active_sessions = db['sessions'].find({"status": "active"})
         return list(active_sessions)
 
-    @staticmethod
-    def list_active_sessions_by_user(user_id: str):
+    # noinspection PyMethodMayBeStatic
+    def list_active_sessions_by_user(self, user_id: str):
         active_sessions = db['sessions'].find({"status": "active", "uid": user_id})
         return list(active_sessions)
 
-    @staticmethod
-    def list_sessions_by_user(user_id: str):
+    # noinspection PyMethodMayBeStatic
+    def list_sessions_by_user(self, user_id: str):
         active_sessions = db['sessions'].find({"uid": user_id})
         return list(active_sessions)
 
-    @staticmethod
-    def _calculate_expiry(start_time: datetime, duration: int):
+    # noinspection PyMethodMayBeStatic
+    def _calculate_expiry(self, start_time: datetime, duration: int):
         try:
             value, unit = duration,'minutes'
         except Exception:
@@ -297,39 +296,40 @@ class SessionManager:
         else:
             raise ValueError("Unsupported duration format. Use 'minute(s)', 'hour(s)', 'day(s)', or 'year(s)'.")
 
-    @staticmethod
-    def upsert_session(session_id: str, session_data: dict):
+    # noinspection PyMethodMayBeStatic
+    def upsert_session(self, session_id: str, session_data: dict):
         """
         Upsert a session in the database. If the session does not exist, it will be created.
         If it exists, it will be updated with the provided session_data.
         """
         db['sessions'].update_one({"session_id": session_id}, {"$set": session_data}, upsert=True)
 
-    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent: dict, start_index: int = 0):
+    # noinspection PyMethodMayBeStatic
+    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent_: dict, start_index: int = 0):
         """
         Calculate the end time for each remaining phase based on the session duration and phase weightage.
 
         Args:
             start_time (datetime): The start time for recalculation.
             duration (int): The total remaining duration in minutes.
-            phase_intent (dict): A dictionary containing phase names and their respective weightages.
+            phase_intent_ (dict): A dictionary containing phase names and their respective weightages.
             start_index (int): The index from which to start recalculating phases (default is 0).
 
         Returns:
             dict: A dictionary with phase names as keys and their recalculated end times as values.
         """
-        phase_keys = list(phase_intent.keys())
+        phase_keys = list(phase_intent_.keys())
         remaining_phase_keys = phase_keys[start_index:]
         total_weight = sum(
-            phase_intent[key]['weightage']
+            phase_intent_[key]['weightage']
             for key in remaining_phase_keys
-            if isinstance(phase_intent[key], dict) and 'weightage' in phase_intent[key]
+            if isinstance(phase_intent_[key], dict) and 'weightage' in phase_intent_[key]
         )
         phase_end_times = {}
         current_time = start_time
 
         for key in remaining_phase_keys:
-            details = phase_intent[key]
+            details = phase_intent_[key]
             if isinstance(details, dict) and 'weightage' in details:
                 phase_duration = (details['weightage'] / total_weight) * duration
                 phase_end_time = current_time + timedelta(minutes=phase_duration)
@@ -349,7 +349,7 @@ class SessionManager:
             return {"error": "only paused sessions can be resumed."}
 
         # calculate new expiry time
-        current_time = datetime.now(datetime.utc)
+        current_time = datetime.now()
         start_time = session.get("resumed_at", session.get("created_at"))
         diff = session["paused_at"] - start_time
         diff_minutes = int(diff.total_seconds() // 60)
@@ -378,8 +378,8 @@ class SessionManager:
         return {"message": "session resumed successfully.", "session_id": session_id,
                 "new_expires_at": new_expires_at}
 
-        # Pause session
-
+    # Pause session
+    # noinspection PyMethodMayBeStatic
     def pause_session(self, session_id: str):
         session = db['sessions'].find_one({"session_id": session_id})
         if not session:
@@ -388,7 +388,7 @@ class SessionManager:
             return {"error": "Only active sessions can be paused."}
 
         # Calculate remaining duration before pausing
-        current_time = datetime.now(datetime.UTC)
+        current_time = datetime.now()
         remaining_duration = (session["expires_at"] - current_time).total_seconds() // 60  # Convert to minutes
 
         # Update session status and save current_phase_index
@@ -403,13 +403,16 @@ class SessionManager:
         )
 
         return {"message": "Session paused successfully.", "session_id": session_id}
+
+    # noinspection PyMethodMayBeStatic
     def generate_session_notes(self, old_session_id: str) -> dict:
-        old_session = self.db['sessions'].find_one({"_id": old_session_id})
+        old_session = db['sessions'].find_one({"_id": old_session_id})
         if not old_session:
-            return "No previous session data found."
+            return {"error": "No previous session data found."}
 
         # Extract relevant data for LLM prompt
-        chat_history = old_session.get("chat_history", "No previous conversation available.")
+        # chat_history =
+        old_session.get("chat_history", "No previous conversation available.")
 
         llm_prompt = f"""                
                 You are an expert clinical documentation assistant trained to assist therapists in structuring session notes. Based on the **chat history** and **key session attributes** from the previous session, you will generate a **therapy session note** in structured JSON format.
@@ -501,7 +504,7 @@ class SessionManager:
                   }},
                   "interventions": [
                    {{
-                      "technique": "e.g., CBT, DBT, psychoeducation",
+                      "technique": "e.g., CBT, DBT, psycho education",
                       "description": "What was done in session",
                       "rationale": "Why this method was used"
                     }}
@@ -546,6 +549,7 @@ class SessionManager:
         # Prepare data for new session
         session_data = SessionCreateRequest(
             uid=old_session["uid"],
+            name=old_session["name"],
             duration=old_session["duration"],
             treatment_goals=old_session["treatment_goals"],
             client_expectations=old_session["client_expectations"],
@@ -561,6 +565,7 @@ class SessionManager:
 
         return new_session_response  # Return standard session creation response
 
+    # noinspection PyMethodMayBeStatic
     def completed_session(self, session_id):
         session = db['sessions'].find_one({"session_id": session_id})
 
@@ -571,7 +576,7 @@ class SessionManager:
             return {"error": "Only active sessions can be paused."}
 
         # Calculate remaining duration before pausing
-        current_time = datetime.datetime.now(datetime.UTC)
+        current_time = datetime.now()
 
         # Update session status
         db['sessions'].update_one(
@@ -581,6 +586,7 @@ class SessionManager:
 
         return {"message": "Session completed successfully.", "session_id": session_id}
 
+    # noinspection PyMethodMayBeStatic
     def update_session_phase(self, session, new_phase_index: int):
         """
         Updates the session's current phase index and recalculates phase end times.

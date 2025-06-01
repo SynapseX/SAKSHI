@@ -27,7 +27,7 @@ class UserProfile(BaseModel):
             }
         }
 
-class UserProfile_DB(BaseModel):
+class UserProfileDB(BaseModel):
     _id: str
     name: str
     age: Optional[int] = None
@@ -39,7 +39,7 @@ class SessionCreateRequest(BaseModel):
     duration: int  # e.g., "1 hour", "1 day", "1 year"
     treatment_goals: str
     client_expectations: str
-    session_notes: str
+    session_notes: str | dict
     termination_plan: str
     review_of_progress: str
     thank_you_note: str
