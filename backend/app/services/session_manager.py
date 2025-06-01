@@ -7,6 +7,8 @@ from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
 
+from backend.app.enums.session_enums import AllowedModelsType
+
 
 def get_title_for_session(session_data):
     """
@@ -32,7 +34,7 @@ def get_title_for_session(session_data):
         input_data = {
             "session_notes": session_data["session_notes"],
             "treatment_goals": session_data.get("treatment_goals", []),
-            "expectations": session_data.get("expectations", "")
+            "expectations": session_data.get("expectations", ""),
         }
     else:
         few_shot_examples = """
@@ -49,7 +51,7 @@ Output: {"session_title": "Starting A New Journey: Understanding Your Current Ch
         input_data = {
             "session_form": session_data.get("session_form", ""),
             "treatment_goals": session_data.get("treatment_goals", []),
-            "expectations": session_data.get("expectations", "")
+            "expectations": session_data.get("expectations", ""),
         }
 
     prompt = (
@@ -66,25 +68,27 @@ Output: {"session_title": "Starting A New Journey: Understanding Your Current Ch
     except json.JSONDecodeError:
         return {"error": "Invalid JSON response from LLM."}
 
+
 # The exact labels we support
 ALLOWED_MODELS = {
-    "CBT": "Cognitive & Behavioral",
-    "Cognitive & Behavioral": "Cognitive & Behavioral",
-    "Humanistic": "Humanistic & Experiential",
-    "Humanistic & Experiential": "Humanistic & Experiential",
-    "Psychodynamic": "Psychodynamic & Insight‑Oriented",
-    "Psychodynamic & Insight‑Oriented": "Psychodynamic & Insight‑Oriented",
-    "Systemic": "Systemic & Family",
-    "Systemic & Family": "Systemic & Family",
-    "DBT": "Third‑Wave & Acceptance‑Based",
-    "ACT": "Third‑Wave & Acceptance‑Based",
-    "Third‑Wave & Acceptance‑Based": "Third‑Wave & Acceptance‑Based",
-    "Trauma": "Trauma‑Focused",
-    "Trauma‑Focused": "Trauma‑Focused",
-    "Narrative": "Narrative & Solution‑Focused",
-    "Solution‑Focused": "Narrative & Solution‑Focused",
-    "Narrative & Solution‑Focused": "Narrative & Solution‑Focused",
+    "CBT": AllowedModelsType.CognitiveAndBehavioral,
+    "Cognitive & Behavioral": AllowedModelsType.CognitiveAndBehavioral,
+    "Humanistic": AllowedModelsType.HumanisticAndExperiential,
+    "Humanistic & Experiential": AllowedModelsType.HumanisticAndExperiential,
+    "Psychodynamic": AllowedModelsType.PsychodynamicAndInsightOriented,
+    "Psychodynamic & Insight-Oriented": AllowedModelsType.PsychodynamicAndInsightOriented,
+    "Systemic": AllowedModelsType.SystemicAndFamily,
+    "Systemic & Family": AllowedModelsType.SystemicAndFamily,
+    "DBT": AllowedModelsType.ThirdWaveAndAcceptanceBased,
+    "ACT": AllowedModelsType.ThirdWaveAndAcceptanceBased,
+    "Third-Wave & Acceptance-Based": AllowedModelsType.ThirdWaveAndAcceptanceBased,
+    "Trauma": AllowedModelsType.TraumaFocused,
+    "Trauma-Focused": AllowedModelsType.TraumaFocused,
+    "Narrative": AllowedModelsType.NarrativeAndSolutionFocused,
+    "Solution-Focused": AllowedModelsType.NarrativeAndSolutionFocused,
+    "Narrative & Solution-Focused": AllowedModelsType.NarrativeAndSolutionFocused,
 }
+
 
 def get_therapy_model(session_data: dict) -> dict:
     """
@@ -98,7 +102,7 @@ def get_therapy_model(session_data: dict) -> dict:
 You are a clinical decision‑support assistant.
 Given the following client details, CLASSIFY which therapy model to use among:
 [Cognitive & Behavioral, Humanistic & Experiential, Psychodynamic & Insight‑Oriented,
-Systemic & Family, Third‑Wave & Acceptance‑Based, Trauma‑Focused, Narrative & Solution‑Focused].
+Systemic & Family, Third‑Wave & Acceptance‑Based, Trauma‑Focused, Narrative & Solution-Focused].
 
 {session_data!r}
 
@@ -124,8 +128,9 @@ Do NOT include additional fields or commentary.
 
     return {
         "chosen_model": chosen_model,
-        "rationale": rationale or "No rationale provided."
+        "rationale": rationale or "No rationale provided.",
     }
+
 
 def get_first_prompt(session_data):
     """
@@ -160,7 +165,7 @@ def get_first_prompt(session_data):
             "session_notes": session_data["session_notes"],
             "treatment_goals": session_data.get("treatment_goals", []),
             "therapy_model": session_data.get("therapy_model", "UNKNOWN"),
-            "expectations": session_data.get("expectations", "")
+            "expectations": session_data.get("expectations", ""),
         }
     else:
         # New session: Use session form details for a generic prompt
@@ -179,7 +184,7 @@ def get_first_prompt(session_data):
             "session_form": session_data.get("session_form", ""),
             "treatment_goals": session_data.get("treatment_goals", []),
             "therapy_model": session_data.get("therapy_model", "UNKNOWN"),
-            "expectations": session_data.get("expectations", "")
+            "expectations": session_data.get("expectations", ""),
         }
 
     prompt = (
@@ -195,6 +200,7 @@ def get_first_prompt(session_data):
         return response
     except json.JSONDecodeError:
         return {"error": "Invalid JSON response from LLM."}
+
 
 class SessionManager:
     def __init__(self):
@@ -212,7 +218,13 @@ class SessionManager:
             "duration": request.duration,
             "created_at": created_at,
             "expires_at": expires_at,
-            "phase_end_times": self.calculate_phase_end_times(created_at, request.duration, phase_intent.get("Narrative & Solution-Focused", "Narrative & Solution-Focused")),
+            "phase_end_times": self.calculate_phase_end_times(
+                created_at,
+                request.duration,
+                phase_intent.get(
+                    "Narrative & Solution-Focused", "Narrative & Solution-Focused"
+                ),
+            ),
             "status": "active",
             "treatment_goals": request.treatment_goals,
             "client_expectations": request.client_expectations,
@@ -221,72 +233,78 @@ class SessionManager:
             "review_of_progress": request.review_of_progress,
             "thank_you_note": request.thank_you_note,
             "current_phase_index": 0,  # Start with the first phase
-            "metadata": request.metadata or {}
+            "metadata": request.metadata or {},
         }
 
-        #Title Generator
+        # Title Generator
         session_data["title"] = get_title_for_session(session_data)
 
         # AND insert
 
-
-        #First Prompt generator
+        # First Prompt generator
         classify_therapy_model = get_therapy_model(session_data)
-        session_data["therapy_model"] = classify_therapy_model['chosen_model']
+        session_data["therapy_model"] = classify_therapy_model["chosen_model"]
 
-        db['sessions'].insert_one(session_data)
+        db["sessions"].insert_one(session_data)
 
         first_prompt = get_first_prompt(session_data)
         session_data["first_prompt"] = first_prompt
-
 
         return session_data
 
     # noinspection PyMethodMayBeStatic
     def get_session(self, session_id: str):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
         return session
 
     def extend_session(self, session_id: str, additional_duration: int):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
         if session and session["status"] == "active":
             # Extend expiry based on the current expiry time
-            new_expiry = self._calculate_expiry(session["expires_at"], additional_duration)
-            db['sessions'].update_one({"session_id": session_id}, {"$set": {"expires_at": new_expiry}})
+            new_expiry = self._calculate_expiry(
+                session["expires_at"], additional_duration
+            )
+            db["sessions"].update_one(
+                {"session_id": session_id}, {"$set": {"expires_at": new_expiry}}
+            )
             session["expires_at"] = new_expiry
             return session
         return None
 
     # noinspection PyMethodMayBeStatic
     def terminate_session(self, session_id: str):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
         if session:
-            db['sessions'].update_one({"session_id": session_id}, {"$set": {"status": "terminated"}})
+            db["sessions"].update_one(
+                {"session_id": session_id}, {"$set": {"status": "terminated"}}
+            )
             session["status"] = "terminated"
             return session
         return None
 
     # noinspection PyMethodMayBeStatic
     def list_active_sessions(self):
-        active_sessions = db['sessions'].find({"status": "active"})
+        active_sessions = db["sessions"].find({"status": "active"})
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
     def list_active_sessions_by_user(self, user_id: str):
-        active_sessions = db['sessions'].find({"status": "active", "uid": user_id})
+        active_sessions = db["sessions"].find({"status": "active", "uid": user_id})
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
     def list_sessions_by_user(self, user_id: str):
-        active_sessions = db['sessions'].find({"uid": user_id})
+        active_sessions = db["sessions"].find({"uid": user_id})
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
     def _calculate_expiry(self, start_time: datetime, duration: int):
         try:
-            value, unit = duration,'minutes'
+            value, unit = duration, "minutes"
         except Exception:
-            raise ValueError("Duration must be in the format '<number> <unit>', e.g., '1 hour'")
+            raise ValueError(
+                "Duration must be in the format '<number> <unit>', e.g., '1 hour'"
+            )
 
         unit = unit.lower()
         if "minutes" in unit:
@@ -294,7 +312,9 @@ class SessionManager:
         elif "hour" in unit:
             return start_time + timedelta(hours=value)
         else:
-            raise ValueError("Unsupported duration format. Use 'minute(s)', 'hour(s)', 'day(s)', or 'year(s)'.")
+            raise ValueError(
+                "Unsupported duration format. Use 'minute(s)', 'hour(s)', 'day(s)', or 'year(s)'."
+            )
 
     # noinspection PyMethodMayBeStatic
     def upsert_session(self, session_id: str, session_data: dict):
@@ -302,10 +322,18 @@ class SessionManager:
         Upsert a session in the database. If the session does not exist, it will be created.
         If it exists, it will be updated with the provided session_data.
         """
-        db['sessions'].update_one({"session_id": session_id}, {"$set": session_data}, upsert=True)
+        db["sessions"].update_one(
+            {"session_id": session_id}, {"$set": session_data}, upsert=True
+        )
 
     # noinspection PyMethodMayBeStatic
-    def calculate_phase_end_times(self, start_time: datetime, duration: int, phase_intent_: dict, start_index: int = 0):
+    def calculate_phase_end_times(
+        self,
+        start_time: datetime,
+        duration: int,
+        phase_intent_: dict,
+        start_index: int = 0,
+    ):
         """
         Calculate the end time for each remaining phase based on the session duration and phase weightage.
 
@@ -321,17 +349,18 @@ class SessionManager:
         phase_keys = list(phase_intent_.keys())
         remaining_phase_keys = phase_keys[start_index:]
         total_weight = sum(
-            phase_intent_[key]['weightage']
+            phase_intent_[key]["weightage"]
             for key in remaining_phase_keys
-            if isinstance(phase_intent_[key], dict) and 'weightage' in phase_intent_[key]
+            if isinstance(phase_intent_[key], dict)
+            and "weightage" in phase_intent_[key]
         )
         phase_end_times = {}
         current_time = start_time
 
         for key in remaining_phase_keys:
             details = phase_intent_[key]
-            if isinstance(details, dict) and 'weightage' in details:
-                phase_duration = (details['weightage'] / total_weight) * duration
+            if isinstance(details, dict) and "weightage" in details:
+                phase_duration = (details["weightage"] / total_weight) * duration
                 phase_end_time = current_time + timedelta(minutes=phase_duration)
                 phase_end_times[key] = phase_end_time
                 current_time = phase_end_time
@@ -340,7 +369,7 @@ class SessionManager:
 
     # Resume session
     def resume_session(self, session_id: str):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
 
         if not session:
             return {"error": "session not found."}
@@ -365,23 +394,29 @@ class SessionManager:
             current_time, new_remaining, phase_intent_for_model, start_phase_index
         )
 
-        db['sessions'].update_one(
+        db["sessions"].update_one(
             {"session_id": session_id},
-            {"$set": {
-                "status": "active",
-                "expires_at": new_expires_at,
-                "resumed_at": current_time,
-                "phase_end_times": new_phase_end_times},
-             "$unset": {"paused_at": "", "remaining_duration": ""}}
+            {
+                "$set": {
+                    "status": "active",
+                    "expires_at": new_expires_at,
+                    "resumed_at": current_time,
+                    "phase_end_times": new_phase_end_times,
+                },
+                "$unset": {"paused_at": "", "remaining_duration": ""},
+            },
         )
 
-        return {"message": "session resumed successfully.", "session_id": session_id,
-                "new_expires_at": new_expires_at}
+        return {
+            "message": "session resumed successfully.",
+            "session_id": session_id,
+            "new_expires_at": new_expires_at,
+        }
 
     # Pause session
     # noinspection PyMethodMayBeStatic
     def pause_session(self, session_id: str):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
         if not session:
             return {"error": "Session not found."}
         if session["status"] != "active":
@@ -389,24 +424,28 @@ class SessionManager:
 
         # Calculate remaining duration before pausing
         current_time = datetime.now()
-        remaining_duration = (session["expires_at"] - current_time).total_seconds() // 60  # Convert to minutes
+        remaining_duration = (
+            session["expires_at"] - current_time
+        ).total_seconds() // 60  # Convert to minutes
 
         # Update session status and save current_phase_index
-        db['sessions'].update_one(
+        db["sessions"].update_one(
             {"session_id": session_id},
-            {"$set": {
-                "status": "paused",
-                "paused_at": current_time,
-                "remaining_duration": remaining_duration,
-                "current_phase_index": session.get("current_phase_index", 0)
-            }}
+            {
+                "$set": {
+                    "status": "paused",
+                    "paused_at": current_time,
+                    "remaining_duration": remaining_duration,
+                    "current_phase_index": session.get("current_phase_index", 0),
+                }
+            },
         )
 
         return {"message": "Session paused successfully.", "session_id": session_id}
 
     # noinspection PyMethodMayBeStatic
     def generate_session_notes(self, old_session_id: str) -> dict:
-        old_session = db['sessions'].find_one({"_id": old_session_id})
+        old_session = db["sessions"].find_one({"_id": old_session_id})
         if not old_session:
             return {"error": "No previous session data found."}
 
@@ -414,7 +453,7 @@ class SessionManager:
         # chat_history =
         old_session.get("chat_history", "No previous conversation available.")
 
-        llm_prompt = f"""                
+        llm_prompt = """                
                 You are an expert clinical documentation assistant trained to assist therapists in structuring session notes. Based on the **chat history** and **key session attributes** from the previous session, you will generate a **therapy session note** in structured JSON format.
                 
                 Use the template provided below, and ensure each field is completed as thoroughly as possible based on the available data. If any data is missing or not evident, mark it with a descriptive placeholder like `"Not discussed in session"` or `"To be updated"`.
@@ -429,7 +468,7 @@ class SessionManager:
                 #### 2. Session Metadata:
                 
                 ```json
-               {{
+               {
                   "id": "uuid",
                   "uid": "user_id",
                   "duration": "in minutes",
@@ -441,15 +480,15 @@ class SessionManager:
                   "termination_plan": "if discussed, any plans to conclude therapy",
                   "review_of_progress": "therapist's review of goal progress",
                   "thank_you_note": "summary or closing message",
-                  "metadata":{{
+                  "metadata":{
                     "any": "additional optional information"
-                  }}
-                }}
+                  }
+                }
                 ```
                 
                 ORIGINAL SESSION DATA
                 ---
-               {{old_session}}
+               {old_session}
                 
                 ---
                 
@@ -460,66 +499,66 @@ class SessionManager:
                 Transform this data into the following structured **TherapySessionNote JSON**:
                 
                 ```json
-               {{
-                  "basic_information":{{
+               {
+                  "basic_information":{
                     "client_id": "From uid",
                     "client_name": "Infer from chat if available or leave blank",
                     "session_date": "Infer from context or use today's date",
                     "session_number": "Estimate or leave blank",
                     "session_time": "Estimate or leave blank",
                     "session_duration": "Use value from 'duration'"
-                  }},
-                  "client_subjective_report":{{
+                  },
+                  "client_subjective_report":{
                     "presenting_issues": "Based on session_notes + chat",
                     "stated_progress": "Use 'review_of_progress' + client responses from chat",
                     "key_client_quotes": ["Pull 2–3 direct quotes from the chat that reflect client perspective"]
-                  }},
-                  "therapist_objective_observations":{{
-                    "mental_status":{{
+                  },
+                  "therapist_objective_observations":{
+                    "mental_status":{
                       "appearance": "From metadata or notes",
                       "mood": "Infer from client's tone or self-report",
                       "affect": "E.g., flat, reactive, congruent, etc.",
                       "behavior": "Notable behaviors during session",
                       "speech": "E.g., pressured, slow, normal",
                       "thought_processes": "E.g., linear, disorganized, racing"
-                    }},
+                    },
                     "nonverbal_cues": "Any notable nonverbal clues mentioned or inferred"
-                  }},
-                  "assessment_and_clinical_impression":{{
+                  },
+                  "assessment_and_clinical_impression":{
                     "progress_towards_goals": "Use 'review_of_progress'",
                     "themes": ["Pull 1–3 recurring topics or emotional threads"],
                     "clinical_formulation_update": "Any updates to understanding of client situation"
-                  }},
-                  "risk_assessment":{{
-                    "risk_to_self_or_others":{{
+                  },
+                  "risk_assessment":{
+                    "risk_to_self_or_others":{
                       "suicidal_ideation": false,
                       "self_harm": false,
                       "harm_to_others": false,
                       "details": "Leave empty or use chat analysis"
-                    }},
-                    "safety_plan":{{
+                    },
+                    "safety_plan":{
                       "discussed": false,
                       "description": ""
-                    }}
-                  }},
+                    }
+                  },
                   "interventions": [
-                   {{
+                   {
                       "technique": "e.g., CBT, DBT, psycho education",
                       "description": "What was done in session",
                       "rationale": "Why this method was used"
-                    }}
+                    }
                   ],
-                  "client_response_to_interventions":{{
+                  "client_response_to_interventions":{
                     "engagement_level": "e.g., receptive, resistant, reflective",
                     "client_feedback": "Client's view of the approach/session"
-                  }},
-                  "plan_for_next_session":{{
+                  },
+                  "plan_for_next_session":{
                     "topics_to_explore": ["Based on open threads from current session"],
                     "planned_interventions": ["Based on client needs or unfinished goals"],
                     "homework_or_tasks": "If any were assigned",
                     "treatment_plan_adjustments": "Updates to approach if needed"
-                  }}
-                }}
+                  }
+                }
                 ```
                 
                 ---
@@ -539,7 +578,7 @@ class SessionManager:
         return session_notes
 
     def create_follow_up_session(self, old_session_id: str):
-        old_session = db['sessions'].find_one({"_id": old_session_id})
+        old_session = db["sessions"].find_one({"_id": old_session_id})
         if not old_session:
             return {"error": "Old session not found"}
 
@@ -557,7 +596,9 @@ class SessionManager:
             termination_plan=old_session["termination_plan"],
             review_of_progress=old_session["review_of_progress"],
             thank_you_note=old_session["thank_you_note"],
-            metadata={"follow_up_of": old_session_id}  # Indicate it's a follow-up session
+            metadata={
+                "follow_up_of": old_session_id
+            },  # Indicate it's a follow-up session
         )
 
         # Call the existing session creation method
@@ -567,7 +608,7 @@ class SessionManager:
 
     # noinspection PyMethodMayBeStatic
     def completed_session(self, session_id):
-        session = db['sessions'].find_one({"session_id": session_id})
+        session = db["sessions"].find_one({"session_id": session_id})
 
         if not session:
             return {"error": "Session not found."}
@@ -579,9 +620,9 @@ class SessionManager:
         current_time = datetime.now()
 
         # Update session status
-        db['sessions'].update_one(
+        db["sessions"].update_one(
             {"session_id": session_id},
-            {"$set": {"status": "completed", "completed_at": current_time}}
+            {"$set": {"status": "completed", "completed_at": current_time}},
         )
 
         return {"message": "Session completed successfully.", "session_id": session_id}
@@ -595,9 +636,11 @@ class SessionManager:
             raise ValueError("Phase index cannot be negative.")
 
         # Update the session in the database
-        db['sessions'].update_one(
+        db["sessions"].update_one(
             {"session_id": session["session_id"]},
-            {"$set": {
-                "current_phase_index": new_phase_index,
-            }}
+            {
+                "$set": {
+                    "current_phase_index": new_phase_index,
+                }
+            },
         )
