@@ -2,12 +2,15 @@ import json
 import uuid
 from datetime import datetime, timedelta
 
+from fastapi.exceptions import HTTPException
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
+
 from backend.app.models.models import SessionCreateRequest
 from backend.app.services.llm_connector import generate_json_response
 from backend.app.services.mongodb_service import db
 from backend.app.services.phase_intent import phase_intent
 
-from backend.app.enums.session_enums import AllowedModelsType
+from backend.app.enums.session_enums import AllowedModelsType, SessionStatusType
 
 
 def get_title_for_session(session_data):
@@ -225,7 +228,7 @@ class SessionManager:
                     "Narrative & Solution-Focused", "Narrative & Solution-Focused"
                 ),
             ),
-            "status": "active",
+            "status": SessionStatusType.active,
             "treatment_goals": request.treatment_goals,
             "client_expectations": request.client_expectations,
             "session_notes": request.session_notes,
@@ -259,38 +262,38 @@ class SessionManager:
 
     def extend_session(self, session_id: str, additional_duration: int):
         session = db["sessions"].find_one({"session_id": session_id})
-        if session and session["status"] == "active":
-            # Extend expiry based on the current expiry time
-            new_expiry = self._calculate_expiry(session["expires_at"], additional_duration)
-            new_duration = session.get("duration", 0) + additional_duration
-            db['sessions'].update_one(
-                {"session_id": session_id},
-                {"$set": {"expires_at": new_expiry, "duration": new_duration}}
+        if not session:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail="Session not found"
             )
-            session["expires_at"] = new_expiry
-            session["duration"] = new_duration
-            return session
-        return None
 
-    # noinspection PyMethodMayBeStatic
-    def terminate_session(self, session_id: str):
-        session = db["sessions"].find_one({"session_id": session_id})
-        if session:
-            db["sessions"].update_one(
-                {"session_id": session_id}, {"$set": {"status": "terminated"}}
+        if session["status"] != SessionStatusType.active:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN, detail="Session not Active"
             )
-            session["status"] = "terminated"
-            return session
-        return None
+
+        # Extend expiry based on the current expiry time
+        new_expiry = self._calculate_expiry(session["expires_at"], additional_duration)
+        new_duration = session.get("duration", 0) + additional_duration
+        db["sessions"].update_one(
+            {"session_id": session_id},
+            {"$set": {"expires_at": new_expiry, "duration": new_duration}},
+        )
+        session["expires_at"] = new_expiry
+        session["duration"] = new_duration
+
+        return session
 
     # noinspection PyMethodMayBeStatic
     def list_active_sessions(self):
-        active_sessions = db["sessions"].find({"status": "active"})
+        active_sessions = db["sessions"].find({"status": SessionStatusType.active})
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
     def list_active_sessions_by_user(self, user_id: str):
-        active_sessions = db["sessions"].find({"status": "active", "uid": user_id})
+        active_sessions = db["sessions"].find(
+            {"status": SessionStatusType.active, "uid": user_id}
+        )
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
@@ -373,10 +376,21 @@ class SessionManager:
         session = db["sessions"].find_one({"session_id": session_id})
 
         if not session:
-            return {"error": "session not found."}
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail="Session not found."
+            )
 
-        if session["status"] != "paused":
-            return {"error": "only paused sessions can be resumed."}
+        if session["status"] == SessionStatusType.active:
+            return {
+                "message": "Session already Active",
+                "session_id": session_id,
+            }
+
+        if session["status"] != SessionStatusType.paused:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Only paused sessions can be resumed",
+            )
 
         # calculate new expiry time
         current_time = datetime.now()
@@ -399,7 +413,7 @@ class SessionManager:
             {"session_id": session_id},
             {
                 "$set": {
-                    "status": "active",
+                    "status": SessionStatusType.active,
                     "expires_at": new_expires_at,
                     "resumed_at": current_time,
                     "phase_end_times": new_phase_end_times,
@@ -409,7 +423,7 @@ class SessionManager:
         )
 
         return {
-            "message": "session resumed successfully.",
+            "message": "Session Resumed",
             "session_id": session_id,
             "new_expires_at": new_expires_at,
         }
@@ -419,9 +433,15 @@ class SessionManager:
     def pause_session(self, session_id: str):
         session = db["sessions"].find_one({"session_id": session_id})
         if not session:
-            return {"error": "Session not found."}
-        if session["status"] != "active":
-            return {"error": "Only active sessions can be paused."}
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail="Session not found."
+            )
+
+        if session["status"] != SessionStatusType.active:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Only active sessions can be paused.",
+            )
 
         # Calculate remaining duration before pausing
         current_time = datetime.now()
@@ -434,7 +454,7 @@ class SessionManager:
             {"session_id": session_id},
             {
                 "$set": {
-                    "status": "paused",
+                    "status": SessionStatusType.paused,
                     "paused_at": current_time,
                     "remaining_duration": remaining_duration,
                     "current_phase_index": session.get("current_phase_index", 0),
@@ -442,7 +462,7 @@ class SessionManager:
             },
         )
 
-        return {"message": "Session paused successfully.", "session_id": session_id}
+        return {"message": "Session Paused", "session_id": session_id}
 
     # noinspection PyMethodMayBeStatic
     def generate_session_notes(self, old_session_id: str) -> dict:
@@ -579,9 +599,11 @@ class SessionManager:
         return session_notes
 
     def create_follow_up_session(self, old_session_id: str):
-        old_session = db["sessions"].find_one({"_id": old_session_id})
+        old_session = db["sessions"].find_one({"session_id": old_session_id})
         if not old_session:
-            return {"error": "Old session not found"}
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail="Old Session not found"
+            )
 
         # Generate session notes using LLM
         session_notes = self.generate_session_notes(old_session_id)
@@ -612,10 +634,18 @@ class SessionManager:
         session = db["sessions"].find_one({"session_id": session_id})
 
         if not session:
-            return {"error": "Session not found."}
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail="Session not found"
+            )
 
-        if session["status"] != "active":
-            return {"error": "Only active sessions can be paused."}
+        if session["status"] == SessionStatusType.completed:
+            return {"message": "Session already completed", "session_id": session_id}
+
+        if session["status"] != SessionStatusType.active:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Only active sessions can be marked complete",
+            )
 
         # Calculate remaining duration before pausing
         current_time = datetime.now()
@@ -623,10 +653,15 @@ class SessionManager:
         # Update session status
         db["sessions"].update_one(
             {"session_id": session_id},
-            {"$set": {"status": "completed", "completed_at": current_time}},
+            {
+                "$set": {
+                    "status": SessionStatusType.completed,
+                    "completed_at": current_time,
+                }
+            },
         )
 
-        return {"message": "Session completed successfully.", "session_id": session_id}
+        return {"message": "Session completed", "session_id": session_id}
 
     # noinspection PyMethodMayBeStatic
     def update_session_phase(self, session, new_phase_index: int):

@@ -9,3 +9,9 @@ class AllowedModelsType(StrEnum):
     ThirdWaveAndAcceptanceBased = "Third-Wave & Acceptance-Based"
     TraumaFocused = "Trauma-Focused"
     NarrativeAndSolutionFocused = "Narrative & Solution-Focused"
+
+
+class SessionStatusType(StrEnum):
+    active = "active"
+    paused = "paused"
+    completed = "completed"

@@ -73,7 +73,7 @@ export class CreateComponent implements OnInit {
 
     this.sessSrv.createSession(this.sessionForm.value).subscribe({
       next: (res) => {
-        this.tstSrv.success(res.message);
+        this.tstSrv.success('New Session Created');
         localStorage.setItem('session_id', res.session.session_id);
         this.resetSessionForm();
         this.isLoading = false;

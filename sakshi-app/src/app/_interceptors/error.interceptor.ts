@@ -1,10 +1,6 @@
 import { inject } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
-import {
-  HttpContextToken,
-  HttpErrorResponse,
-  HttpInterceptorFn,
-} from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 
 import { ToastrService } from 'ngx-toastr';
@@ -27,16 +23,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (err) {
         switch (err.status) {
           case 400:
-            tSrv.error(
-              `Request couldn't be processed`,
-              `${err.status} Bad Request`
-            );
+            tSrv.error(`Request couldn't be processed`);
             break;
           case 401:
-            tSrv.error(err?.error?.error || '', `${err.status} Unauthorized`);
+            tSrv.error(err.error.detail || '', `${err.status} Unauthorized`);
+            break;
+          case 403:
+            console.error(err.error.detail);
             break;
           case 404:
-            router.navigateByUrl('/not-found');
+            // router.navigateByUrl('/not-found');
             break;
           case 500:
             const navigationExtras: NavigationExtras = {
@@ -47,13 +43,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             };
             router.navigateByUrl('/server-error', navigationExtras);
             break;
+          case 0:
+            tSrv.error('Come back later', 'Something Happened !');
+            break;
           default:
-            tSrv.error(`The request couldn't be processed at the moment!`);
             console.log('DEFAULT_ERR', err);
             break;
         }
       }
       throw err;
-    })
+    }),
   );
 };
