@@ -261,13 +261,14 @@ class SessionManager:
         session = db["sessions"].find_one({"session_id": session_id})
         if session and session["status"] == "active":
             # Extend expiry based on the current expiry time
-            new_expiry = self._calculate_expiry(
-                session["expires_at"], additional_duration
-            )
-            db["sessions"].update_one(
-                {"session_id": session_id}, {"$set": {"expires_at": new_expiry}}
+            new_expiry = self._calculate_expiry(session["expires_at"], additional_duration)
+            new_duration = session.get("duration", 0) + additional_duration
+            db['sessions'].update_one(
+                {"session_id": session_id},
+                {"$set": {"expires_at": new_expiry, "duration": new_duration}}
             )
             session["expires_at"] = new_expiry
+            session["duration"] = new_duration
             return session
         return None
 
