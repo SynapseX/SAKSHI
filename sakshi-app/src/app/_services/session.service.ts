@@ -51,17 +51,17 @@ export class SessionService {
 
   pauseSession(sessionId: string) {
     console.log({ sessionId });
-    const url = `${this.apiUrl}/pause_session/${sessionId}`;
+    const url = `${this.apiUrl}/sessions/${sessionId}/pause`;
     return this.http.post(url, {});
   }
 
   resumeSession(sessionId: string) {
-    const url = `${this.apiUrl}/resume_session/${sessionId}`;
+    const url = `${this.apiUrl}/sessions/${sessionId}/resume`;
     return this.http.post(url, {});
   }
 
   terminateSession(sessionId: string) {
-    const url = `${this.apiUrl}/completed_session/${sessionId}`;
+    const url = `${this.apiUrl}/sessions/${sessionId}/complete`;
     return this.http.post(url, {}).pipe(
       map((res: any) => {
         const activeSessions = this.activeSessionsSource.value;
@@ -80,7 +80,7 @@ export class SessionService {
   }
 
   followupSession(oldSessionId: string) {
-    const url = `${this.apiUrl}/follow_up/${oldSessionId}`;
+    const url = `${this.apiUrl}/sessions/${oldSessionId}/followup`;
 
     return this.http.post(url, {});
   }
