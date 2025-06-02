@@ -23,7 +23,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authSub = this.authSrv.currentUser$.subscribe({
       next: (u) => {
-        console.log(u);
         if (u) {
           this.user = u;
           this.authSrv.getDBUser(u.email || '').subscribe({
