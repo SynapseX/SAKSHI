@@ -10,8 +10,8 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class SessionService {
-  activeSessionsSource = new BehaviorSubject<ISessionOutput[]>([]);
-  activeSessions$ = this.activeSessionsSource.asObservable();
+  allSessionsSource = new BehaviorSubject<ISessionOutput[]>([]);
+  allSessions$ = this.allSessionsSource.asObservable();
 
   private firstPromptSource = new BehaviorSubject<String>('');
   firstPrompt$ = this.firstPromptSource.asObservable();
@@ -36,42 +36,42 @@ export class SessionService {
 
     return this.http.post(url, formData).pipe(
       map((res: any) => {
-        const allSessions = [...this.activeSessionsSource.value, res.session];
-        this.activeSessionsSource.next(allSessions);
+        const allSessions = [...this.allSessionsSource.value, res.session];
+        this.allSessionsSource.next(allSessions);
         this.firstPromptSource.next(res.session.first_prompt.first_prompt);
         return res;
       }),
     );
   }
 
-  getSession(sessionId: string) {
+  getSessionById(sessionId: string) {
     const url = `${this.apiUrl}/sessions/${sessionId}`;
     return this.http.get(url);
   }
 
-  pauseSession(sessionId: string) {
+  pauseSessionById(sessionId: string) {
     console.log({ sessionId });
     const url = `${this.apiUrl}/sessions/${sessionId}/pause`;
     return this.http.post(url, {});
   }
 
-  resumeSession(sessionId: string) {
+  resumeSessionById(sessionId: string) {
     const url = `${this.apiUrl}/sessions/${sessionId}/resume`;
     return this.http.post(url, {});
   }
 
-  terminateSession(sessionId: string) {
+  terminateSessionById(sessionId: string) {
     const url = `${this.apiUrl}/sessions/${sessionId}/complete`;
     return this.http.post(url, {}).pipe(
       map((res: any) => {
-        const activeSessions = this.activeSessionsSource.value;
-        this.activeSessionsSource.next(activeSessions.filter((s: any) => s.session_id !== sessionId));
+        const allSessions = this.allSessionsSource.value;
+        this.allSessionsSource.next(allSessions.filter((s: any) => s.session_id !== sessionId));
         return res;
       }),
     );
   }
 
-  extendSession(sessionId: string, duration: number) {
+  extendSessionById(sessionId: string, duration: number) {
     const url = `${this.apiUrl}/sessions/${sessionId}/extend?additional_duration=${duration}`;
 
     if (duration < 5 && duration > 90) return of(new Error('Invalid Duration'));
@@ -85,8 +85,8 @@ export class SessionService {
     return this.http.post(url, {});
   }
 
-  listActiveSessions(uid: string) {
-    const url = `${this.apiUrl}/sessions/active/${uid}`;
-    return this.http.get<{ active_sessions: ISessionOutput[] }>(url);
+  listSessionsByUser(uid: string, status: string = '') {
+    const url = `${this.apiUrl}/sessions/list/${uid}?status=${status}`;
+    return this.http.get<{ sessions: ISessionOutput[] }>(url);
   }
 }

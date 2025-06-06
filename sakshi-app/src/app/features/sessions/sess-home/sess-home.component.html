@@ -5,29 +5,28 @@
   <div class="max-w-3xl mx-auto space-y-4">
     <div class="py-6 px-2 md:px-6 border rounded">
       <h3 class="mb-3 font-semibold text-lg">Active Sessions</h3>
-      @if (activeSessions && activeSessions.length > 0) {
+      @if ((allSessions | filter:'active':'status').length > 0) {
       <!--  -->
-      @for (sess of activeSessions; track $index) {
-      <app-session-card [session]="sess"></app-session-card>
+      @for (sess of filterSessions('active'); track $index) {
+      <app-session-card [session]="sess" (onUpdate)="updateSessionUI"></app-session-card>
       }
       <!--  -->
-      }@else {
+      }
+      @if(filterSessions('completed', false).length === 0){
       <app-empty-box msg="No Sessions as of Now"></app-empty-box>
       <div class="flex justify-center">
         <button mat-raised-button [routerLink]="['create']">Create Session</button>
       </div>
       }
     </div>
-    @if (otherSessions && otherSessions.length > 0) {
     <div class="py-6 px-2 md:px-6 border rounded">
       <h3 class="mb-3 font-semibold text-lg">Previous Sessions</h3>
       <!--  -->
-      @for (sess of otherSessions; track $index) {
-      <app-session-card [session]="sess"></app-session-card>
+      @for (sess of filterSessions('active', false); track $index) {
+      <app-session-card [session]="sess" (onUpdate)="updateSessionUI"></app-session-card>
       }
       <!--  -->
     </div>
-    }
   </div>
   }
 </div>

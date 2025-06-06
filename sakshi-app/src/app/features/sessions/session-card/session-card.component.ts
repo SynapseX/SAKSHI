@@ -1,15 +1,21 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { ToastrService } from 'ngx-toastr';
 import { ISessionOutput } from '@/_models/Session';
 import { SessionService } from '@/_services/session.service';
-import { formatDateTime, formatDuration, minutes } from '@/_utils';
 import { ModalComponent } from '@/components/modal/modal.component';
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { ToastrService } from 'ngx-toastr';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { formatDateTime, formatDuration, minutes } from '@/_utils';
+
+interface OnUpdateType {
+  updateType: 'pause' | 'resume' | 'complete' | 'ui';
+  session: ISessionOutput;
+}
 
 @Component({
   selector: 'app-session-card',
@@ -28,6 +34,7 @@ import { ToastrService } from 'ngx-toastr';
 export class SessionCardComponent {
   minutes = minutes;
   @Input() session!: ISessionOutput;
+  @Output() onUpdate = new EventEmitter<OnUpdateType>();
 
   deleteModalData = {
     sessionId: '',
@@ -42,22 +49,28 @@ export class SessionCardComponent {
 
   constructor(private sessSrv: SessionService, private tstSrv: ToastrService) {}
 
-  initiateDeleteSession(session_id: string, session_title: string = '') {
-    this.deleteModalData.sessionId = session_id;
-    this.deleteModalData.sessionTitle = session_title;
+  initiateDeleteSession() {
+    this.deleteModalData = {
+      sessionId: this.session.session_id,
+      sessionTitle: this.session.title.session_title,
+    };
   }
 
   cancelDeleteSession() {
-    this.deleteModalData.sessionId = '';
-    this.deleteModalData.sessionTitle = '';
+    this.deleteModalData = {
+      sessionId: '',
+      sessionTitle: '',
+    };
   }
 
   deleteSession() {
     if (this.deleteModalData.sessionId) {
-      this.sessSrv.terminateSession(this.deleteModalData.sessionId).subscribe({
+      this.sessSrv.terminateSessionById(this.deleteModalData.sessionId).subscribe({
         next: (res) => {
           console.log({ complete: res });
           this.tstSrv.success(res.message, this.deleteModalData.sessionTitle);
+          this.session.status = 'completed';
+          this.emitSession('complete');
         },
         complete: () => {
           this.cancelDeleteSession();
@@ -66,16 +79,16 @@ export class SessionCardComponent {
     }
   }
 
-  initiateExtendSession(session_id: string, session_title: string = '') {
-    this.extendModalData.sessionId = session_id;
-    this.extendModalData.sessionTitle = session_title;
+  initiateExtendSession() {
+    this.extendModalData.sessionId = this.session.session_id;
+    this.extendModalData.sessionTitle = this.session.title.session_title;
   }
 
   cancelExtendSession() {
     this.extendModalData = {
       sessionId: '',
       sessionTitle: '',
-      additional_duration: 15,
+      additional_duration: 5,
     };
   }
 
@@ -83,7 +96,7 @@ export class SessionCardComponent {
     const { sessionId, sessionTitle, additional_duration } = this.extendModalData;
 
     if (sessionId && minutes.includes(additional_duration)) {
-      this.sessSrv.extendSession(sessionId, additional_duration).subscribe({
+      this.sessSrv.extendSessionById(sessionId, additional_duration).subscribe({
         next: (res: any) => {
           console.log({ extend: res });
           this.tstSrv.success(res.message, sessionTitle);
@@ -95,15 +108,26 @@ export class SessionCardComponent {
     }
   }
 
-  pauseSession(sessionId: string) {
-    if (sessionId) {
-      this.sessSrv.pauseSession(sessionId).subscribe({
-        next: (res: any) => {
-          console.log({ pause: res });
-          this.tstSrv.success(res.message);
-        },
-      });
-    }
+  pauseSession() {
+    this.sessSrv.pauseSessionById(this.session.session_id).subscribe({
+      next: (res: any) => {
+        console.log({ pause: res });
+        this.tstSrv.success(`${this.session.title.session_title} Paused`);
+        this.session.status = 'paused';
+        this.emitSession('pause');
+      },
+    });
+  }
+
+  resumeSession() {
+    this.sessSrv.resumeSessionById(this.session.session_id).subscribe({
+      next: (res: any) => {
+        console.log({ resume: res });
+        this.tstSrv.success(`${this.session.title.session_title} Resumed`);
+        this.session.status = 'active';
+        this.emitSession('resume');
+      },
+    });
   }
 
   followupSession(oldSessionId: string) {
@@ -116,6 +140,13 @@ export class SessionCardComponent {
         },
       });
     }
+  }
+
+  emitSession(updateType: OnUpdateType['updateType']) {
+    this.onUpdate.emit({
+      updateType,
+      session: this.session,
+    });
   }
 
   formatDateTime(dateTime: string): string {

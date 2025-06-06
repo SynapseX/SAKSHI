@@ -1,6 +1,6 @@
 import json
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from backend.app.models.models import SessionCreateRequest
 from backend.app.services.session_manager import SessionManager
@@ -51,10 +51,10 @@ def extend_session(session_id: str, additional_duration: int):
     }
 
 
-@session_router.get("/active/{user_id}", status_code=HTTP_200_OK)
-def list_active_sessions_by_user(user_id: str):
-    active_sessions = session_manager.list_sessions_by_user(user_id)
-    return {"active_sessions": json.loads(json.dumps(active_sessions, default=str))}
+@session_router.get("/list/{user_id}", status_code=HTTP_200_OK)
+def list_sessions_by_user(user_id: str, status: str = Query("")):
+    sessions = session_manager.list_sessions_by_user(user_id, status)
+    return {"sessions": json.loads(json.dumps(sessions, default=str))}
 
 
 @session_router.post("/{session_id}/pause", status_code=HTTP_200_OK)

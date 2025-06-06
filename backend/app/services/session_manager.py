@@ -297,9 +297,14 @@ class SessionManager:
         return list(active_sessions)
 
     # noinspection PyMethodMayBeStatic
-    def list_sessions_by_user(self, user_id: str):
-        active_sessions = db["sessions"].find({"uid": user_id})
-        return list(active_sessions)
+    def list_sessions_by_user(self, user_id: str, status: str = ""):
+        sessions = []
+        query = {"uid": user_id}
+        if status and status in SessionStatusType:
+            query["status"] = status
+
+        sessions = db["sessions"].find(query)
+        return list(sessions)
 
     # noinspection PyMethodMayBeStatic
     def _calculate_expiry(self, start_time: datetime, duration: int):

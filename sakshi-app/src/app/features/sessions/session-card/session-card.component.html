@@ -24,7 +24,7 @@
       {{ formatDateTime(session.created_at) }}
     </p>
 
-    @if (session.completed_at) {
+    @if (session.status === 'completed' && session.completed_at) {
     <p class="text-sm text-gray-600">
       <strong class="font-medium text-gray-700">Completed:</strong>
       {{ formatDateTime(session.completed_at) }}
@@ -32,22 +32,22 @@
     }
 
     <div class="mt-4 flex gap-2">
-      @if (['completed'].includes(session.status)) {
+      @if (session.status === 'completed') {
       <button mat-stroked-button color="accent" (click)="followupSession(session.session_id)">
         <mat-icon>calendar_add_on</mat-icon>
         Follow Up
       </button>
       }
       <!--  -->
-      @if (['active','paused'].includes(session.status)) {
-      <button mat-stroked-button color="primary" (click)="pauseSession(session.session_id)">
+      @if (session.status === 'active') {
+      <button mat-stroked-button color="primary" (click)="pauseSession()">
         <mat-icon>pause</mat-icon>
         Pause
       </button>
       <button
         mat-stroked-button
         color="accent"
-        (click)="initiateExtendSession(session.session_id, session.title.session_title)"
+        (click)="initiateExtendSession()"
       >
         <mat-icon>more_time</mat-icon>
         Extend
@@ -55,11 +55,18 @@
       <button
         mat-stroked-button
         color="warn"
-        (click)="initiateDeleteSession(session.session_id, session.title.session_title)"
+        (click)="initiateDeleteSession()"
       >
         <mat-icon>stop_circle</mat-icon>
         Terminate
       </button>
+      }
+      <!--  -->
+      @if (session.status === 'paused') {        
+        <button mat-stroked-button color="primary" (click)="resumeSession()">
+          <mat-icon>resume</mat-icon>
+          Resume
+        </button>
       }
     </div>
   </div>
@@ -87,9 +94,9 @@
 >
   <p class="text-gray-300">Extend ...</p>
   <h3 class="text-lg my-2 font-semibold">{{ extendModalData.sessionTitle }}</h3>
-  <p class="text-gray-600 mb-2">Need some more time with SAKSHI ? Extend it Now</p>
+  <p class="text-gray-600 mb-4">Need some more time with SAKSHI ? Extend it Now</p>
   <mat-form-field class="w-full md:w-auto">
-    <mat-label>Duration</mat-label>
+    <mat-label>Extend by</mat-label>
     <mat-select name="additional_duration" [(ngModel)]="extendModalData.additional_duration">
       @for (m of minutes; track m) {
       <mat-option [value]="m">{{ m }} Mins</mat-option>
