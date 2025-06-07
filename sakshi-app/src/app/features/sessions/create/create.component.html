@@ -8,97 +8,114 @@
   <h3 class="text-lg font-extrabold mb-6 text-gray-500">
     Start a Session with <span class="text-gray-700">SAKSHI</span><span class="text-green-500">.AI</span>
   </h3>
-  <form [formGroup]="sessionForm" (ngSubmit)="submitSessionForm()">
-    <mat-form-field>
-      <mat-label>Duration</mat-label>
-      <mat-select name="sessionDuration" formControlName="sessionDuration">
-        @for (m of minutes; track m) {
-        <mat-option [value]="m">{{ m }} Mins</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    <div class="">
-      <h3 class="mb-2 flex items-center space-x-1">
-        <span>Goals and Expectations</span>
-        <span
-          class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
-          matTooltip="What are your goals and what outcome do you expect from the Session."
-          matTooltipPosition="right"
-        >
-          info
-        </span>
-      </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
-        <mat-form-field class="w-full">
-          <mat-label>Treatment and Goals</mat-label>
-          <input matInput name="treatmentGoals" formControlName="treatmentGoals" />
-        </mat-form-field>
+  <mat-stepper orientation="vertical">
+    <mat-step [stepControl]="step1Form">
+      <ng-template matStepLabel>Set Expectations</ng-template>
+      <form [formGroup]="step1Form">
+        <div class="pt-3">
+          <mat-form-field>
+            <mat-label>Duration</mat-label>
+            <mat-select name="sessionDuration" formControlName="sessionDuration">
+              @for (m of minutes; track m) {
+              <mat-option [value]="m">{{ m }} Mins</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <h3 class="mb-2 flex items-center space-x-1">
+            <span>Goals and Expectations</span>
+            <span
+              class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
+              matTooltip="What are your goals and what outcome do you expect from the Session."
+              matTooltipPosition="right"
+            >
+              info
+            </span>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>Treatment and Goals</mat-label>
+              <input matInput name="treatmentGoals" formControlName="treatmentGoals" />
+            </mat-form-field>
+    
+            <mat-form-field class="w-full">
+              <mat-label>Client Expectations</mat-label>
+              <input matInput name="clientExpectations" formControlName="clientExpectations" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="space-x-2">
+          <button type="button" mat-stroked-button (click)="resetSessionForm('1')">Clear</button>
+          <button type="button" mat-flat-button color="accent" matStepperNext [disabled]="step1Form.invalid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel>Termination Plan</ng-template>
+      <form [formGroup]="step2Form" (ngSubmit)="submitSessionForm()">
+        <div class="pt-3">    
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
+            <mat-form-field class="w-full">
+              <mat-label>Termination Plan</mat-label>
+              <input matInput name="terminationPlan" formControlName="terminationPlan" />
+            </mat-form-field>
+    
+            <mat-form-field class="w-full">
+              <mat-label>Review of Progress</mat-label>
+              <input matInput name="reviewOfProgress" formControlName="reviewOfProgress" />
+            </mat-form-field>
+    
+            <mat-form-field class="w-full">
+              <mat-label>Thank You NOTE</mat-label>
+              <input matInput name="thankYouNote" formControlName="thankYouNote" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="">
+          <h3 class="mb-2 flex items-center space-x-1">
+            <span>Session Notes</span>
+            <span
+              class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
+              matTooltip="Session Notes"
+              matTooltipPosition="above"
+            >
+              info
+            </span>
+          </h3>
+    
+          <mat-form-field class="w-full">
+            <mat-label>Session Notes</mat-label>
+            <textarea
+              matInput
+              name="sessionNotes"
+              disabled
+              [value]="step2Form.controls['sessionNotes'].value"
+              style="resize: none"
+            ></textarea>
+          </mat-form-field>
+        </div>
+      
+        <div class="space-x-2">
+          <button type="button" mat-stroked-button matStepperPrevious>
+            <span>Back</span>
+          </button>
+          <button type="button" (click)="resetSessionForm('2')" mat-stroked-button>
+            <span>Clear</span>
+          </button>
+          @if (isLoading) {
+          <button type="button" mat-flat-button>
+            <mat-icon class="animate-spin">progress_activity</mat-icon>
+            <span class="animate-pulse">Creating Session ...</span>
+          </button>
+          }@else {
+          <button type="submit" mat-raised-button color="accent" [disabled]="step2Form.invalid">
+            <span> Create Session </span>
+          </button>
+          }
+        </div>
+      </form>
+    </mat-step>
 
-        <mat-form-field class="w-full">
-          <mat-label>Client Expectations</mat-label>
-          <input matInput name="clientExpectations" formControlName="clientExpectations" />
-        </mat-form-field>
-      </div>
-    </div>
-    <div class="">
-      <h3 class="mb-2">Termination</h3>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-2">
-        <mat-form-field class="w-full">
-          <mat-label>Termination Plan</mat-label>
-          <input matInput name="terminationPlan" formControlName="terminationPlan" />
-        </mat-form-field>
-
-        <mat-form-field class="w-full">
-          <mat-label>Review of Progress</mat-label>
-          <input matInput name="reviewOfProgress" formControlName="reviewOfProgress" />
-        </mat-form-field>
-
-        <mat-form-field class="w-full">
-          <mat-label>Thank You NOTE</mat-label>
-          <input matInput name="thankYouNote" formControlName="thankYouNote" />
-        </mat-form-field>
-      </div>
-    </div>
-    <div class="">
-      <h3 class="mb-2 flex items-center space-x-1">
-        <span>Session Notes</span>
-        <span
-          class="material-symbols-rounded size-6 text-base text-blue-500 cursor-pointer"
-          matTooltip="Session Notes"
-          matTooltipPosition="above"
-        >
-          info
-        </span>
-      </h3>
-
-      <mat-form-field class="w-full">
-        <mat-label>Session Notes</mat-label>
-        <textarea
-          matInput
-          name="sessionNotes"
-          disabled
-          [value]="sessionForm.controls['sessionNotes'].value"
-          style="resize: none"
-        ></textarea>
-      </mat-form-field>
-    </div>
-    <div class="space-x-2">
-      <button type="button" (click)="resetSessionForm()" mat-flat-button>
-        <span>Cancel</span>
-      </button>
-      @if (isLoading) {
-      <button type="button" mat-flat-button>
-        <mat-icon class="animate-spin">progress_activity</mat-icon>
-        <span class="animate-pulse">Creating Session ...</span>
-      </button>
-      }@else {
-      <button type="submit" mat-raised-button color="accent" [disabled]="sessionForm.invalid">
-        <span> Create Session </span>
-      </button>
-      }
-    </div>
-  </form>
+  </mat-stepper>
 </div>
 
 <app-modal actionText="Got It" (onAction)="closeModal()" (onCancel)="closeModal()" [isOpen]="modalState">
