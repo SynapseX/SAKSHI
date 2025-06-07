@@ -285,11 +285,6 @@ class SessionManager:
         return session
 
     # noinspection PyMethodMayBeStatic
-    def list_active_sessions(self):
-        active_sessions = db["sessions"].find({"status": SessionStatusType.active})
-        return list(active_sessions)
-
-    # noinspection PyMethodMayBeStatic
     def list_active_sessions_by_user(self, user_id: str):
         active_sessions = db["sessions"].find(
             {"status": SessionStatusType.active, "uid": user_id}

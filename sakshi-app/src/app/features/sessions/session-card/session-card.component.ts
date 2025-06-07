@@ -11,25 +11,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { formatDateTime, formatDuration, minutes } from '@/_utils';
+import { RouterModule } from '@angular/router';
 
 interface OnUpdateType {
   updateType: 'pause' | 'resume' | 'complete' | 'ui';
   session: ISessionOutput;
 }
 
+const MatImports = [MatButtonModule, MatIconModule, MatFormFieldModule, MatSelectModule];
+
 @Component({
   selector: 'app-session-card',
   standalone: true,
   templateUrl: './session-card.component.html',
-  imports: [
-    CommonModule,
-    ModalComponent,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormsModule,
-  ],
+  imports: [...MatImports, CommonModule, ModalComponent, FormsModule, RouterModule],
 })
 export class SessionCardComponent {
   minutes = minutes;

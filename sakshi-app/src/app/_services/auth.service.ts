@@ -3,7 +3,14 @@ import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { type FirebaseApp, initializeApp } from 'firebase/app';
 import { type Analytics, getAnalytics } from 'firebase/analytics';
-import { GoogleAuthProvider, getAuth, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  getAuth,
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
+  getIdToken,
+} from 'firebase/auth';
 import { IUserOutput, User, UserOutput } from '../_models/User';
 import { ConfigService } from './config.service';
 import { ToastrService } from 'ngx-toastr';

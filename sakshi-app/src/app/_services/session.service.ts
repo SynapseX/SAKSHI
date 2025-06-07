@@ -44,9 +44,17 @@ export class SessionService {
     );
   }
 
+  getInMemorySessionById(sessionId: string) {
+    return this.allSessions$.pipe(
+      map((sessions) => {
+        return sessions.find((s) => s.session_id === sessionId) ?? null;
+      }),
+    );
+  }
+
   getSessionById(sessionId: string) {
     const url = `${this.apiUrl}/sessions/${sessionId}`;
-    return this.http.get(url);
+    return this.http.get<ISessionOutput>(url);
   }
 
   pauseSessionById(sessionId: string) {

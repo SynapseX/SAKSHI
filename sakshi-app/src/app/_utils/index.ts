@@ -18,3 +18,23 @@ export function formatDuration(duration: number): string {
   const minutes = duration % 60;
   return `${hours} hr ${minutes} min`;
 }
+
+/**
+ * Helper function to ensure numbers are formatted with two digits (e.g., 5 -> "05").
+ * @param num The number to format.
+ * @returns The two-digit string representation.
+ */
+export function formatTwoDigits(num: number): string {
+  return num < 10 ? '0' + num : '' + num;
+}
+
+export const formatTime = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  };
+
+  return new Intl.DateTimeFormat('en-IN', options).format(date);
+};

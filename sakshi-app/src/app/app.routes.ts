@@ -15,36 +15,44 @@ import { optAuthGuard } from '@/_guards/opt_auth.guard';
 import { ProfileComponent } from '@/features/profile/profile.component';
 import { AboutComponent } from './features/about/about.component';
 import { authResolver } from './_resolvers/auth.resolver';
+import { MainWithNavComponent } from './layouts/main-with-nav/main-with-nav.component';
+import { sessionResolver } from './_resolvers/session.resolver';
+import { sessionTitleResolver } from './_resolvers/sessionTitle.resolver';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
-    title: 'SAKSHI.AI',
+    component: MainWithNavComponent,
+    runGuardsAndResolvers: 'always',
     canActivate: [optAuthGuard],
-  },
-  {
-    path: 'about',
-    component: AboutComponent,
-    title: 'About Us | SAKSHI.AI',
-    canActivate: [optAuthGuard],
-  },
-  {
-    path: 'auth',
-    component: AuthComponent,
-    canActivate: [optAuthGuard],
-    title: 'Signin to get a FREE Session on SAKSHI.AI',
-    resolve: { to: authResolver },
+    children: [
+      {
+        path: '',
+        component: HomeComponent,
+      },
+      {
+        path: 'about',
+        component: AboutComponent,
+        title: 'About Us',
+      },
+      {
+        path: 'auth',
+        component: AuthComponent,
+        title: 'Signin to get a FREE Session on SAKSHI.AI',
+        resolve: { to: authResolver },
+      },
+    ],
   },
   {
     path: '',
+    component: MainWithNavComponent,
     runGuardsAndResolvers: 'always',
     canActivate: [authGuard],
     children: [
       {
         path: 'profile',
         component: ProfileComponent,
-        title: 'Your Profile | SAKSHI.AI',
+        title: 'Your Profile',
       },
       {
         path: 'sessions',
@@ -53,36 +61,42 @@ export const routes: Routes = [
           {
             path: '',
             component: SessHomeComponent,
-            title: 'Sessions | SAKSHI.AI',
+            title: 'Sessions',
           },
           {
             path: 'create',
             component: CreateComponent,
-            title: 'Create a Session | SAKSHI.AI',
+            title: 'Create a Session',
           },
         ],
-      },
-      {
-        path: 'meet',
-        component: MeetComponent,
-        title: 'Session | SAKSHI.AI',
       },
     ],
   },
   {
+    path: 'meet',
+    redirectTo: 'sessions',
+    pathMatch: 'full',
+  },
+  {
+    path: 'meet/:sessionId',
+    component: MeetComponent,
+    resolve: { session: sessionResolver },
+    canActivate: [authGuard],
+  },
+  {
     path: 'not-found',
     component: NotFoundComponent,
-    title: 'Error 404 | SAKSHI.AI',
+    title: 'Error 404',
   },
   {
     path: 'server-error',
     component: ServerErrorComponent,
-    title: 'Internal Server Error | SAKSHI.AI',
+    title: 'Internal Server Error',
   },
   {
     path: '**',
     component: NotFoundComponent,
     pathMatch: 'full',
-    title: 'Error 404 | SAKSHI.AI',
+    title: 'Error 404',
   },
 ];

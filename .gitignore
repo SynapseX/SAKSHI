@@ -207,5 +207,9 @@ typings/
 .DS_Store
 Thumbs.db
 
+# Misc
 **/server/*.json
 **/server/*.mp3
+
+# Backups
+**/*bkp

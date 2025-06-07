@@ -9,7 +9,6 @@ class UserProfile(BaseModel):
     uid: str = Field(..., alias="_id")
     name: str
     email: str
-    username: Optional[str] = ""
     phone_number: Optional[str] = ""
     date_of_birth: Optional[str] = ""
     gender: Optional[str] = ""

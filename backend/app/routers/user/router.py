@@ -25,10 +25,8 @@ async def get_all_users():
 
 @user_router.post("/user", status_code=HTTP_201_CREATED)
 async def create_profile(profile: UserProfile):
-    # Check for existing user by email or username
-    existing_user = db["users"].find_one(
-        {"$or": [{"email": profile.email}, {"username": profile.username}]}
-    )
+    # Check for existing user by email
+    existing_user = db["users"].find_one({"email": profile.email})
 
     if existing_user:
         logger.warning(f"User already exists with email: {profile.email}")
@@ -47,6 +45,7 @@ async def create_profile(profile: UserProfile):
 async def get_user_by_email(email: str = Query(...)):
     try:
         user = db["users"].find_one({"email": email})
+        print(user)
         if not user:
             return {"user": None}
         return {"user": user}

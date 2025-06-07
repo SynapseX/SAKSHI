@@ -3,7 +3,8 @@
   <div class="p-4 sm:p-6">
     <div class="flex justify-between items-start mb-3">
       <div>
-        <h3 class="text-lg font-semibold text-gray-800 leading-tight mb-1">
+
+        <h3 class="text-lg font-semibold text-gray-800 leading-tight mb-1" [routerLink]="session.status === 'active' ? ['/meet', session.session_id] : null" [ngClass]="session.status === 'active' ? 'cursor-pointer hover:underline hover:text-green-500': ''">
           {{ session.title.session_title }}
         </h3>
         <p class="text-sm text-gray-500">{{ session.session_id }}</p>
@@ -30,8 +31,13 @@
       {{ formatDateTime(session.completed_at) }}
     </p>
     }
+    @if (session.status === 'active') {
+    <div class="mt-4 flex flex-wrap gap-2">
+      <a [routerLink]="['/meet', session.session_id]" mat-raised-button>Continue to Meeting</a>
+    </div>
+    }
 
-    <div class="mt-4 flex gap-2">
+    <div class="mt-4 flex flex-wrap gap-2">
       @if (session.status === 'completed') {
       <button mat-stroked-button color="accent" (click)="followupSession(session.session_id)">
         <mat-icon>calendar_add_on</mat-icon>

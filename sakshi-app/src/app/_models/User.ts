@@ -10,7 +10,6 @@ export interface IUserOutput {
   _id: string;
   name: string;
   email: string;
-  username?: string | null;
   phone_number?: string | null;
   date_of_birth?: string | null;
   gender?: string | null;
@@ -24,7 +23,6 @@ export class UserOutput {
   _id: string;
   name: string;
   email: string;
-  username?: string | null;
   phone_number?: string | null;
   date_of_birth?: string | null;
   gender?: string | null;
@@ -37,7 +35,6 @@ export class UserOutput {
     _id: string;
     name: string;
     email: string;
-    username?: string | null;
     phone_number?: string | null;
     date_of_birth?: string | null;
     gender?: string | null;
@@ -49,7 +46,6 @@ export class UserOutput {
     this._id = data._id;
     this.name = data.name;
     this.email = data.email;
-    this.username = data.username;
     this.phone_number = data.phone_number;
     this.date_of_birth = data.date_of_birth;
     this.gender = data.gender;
